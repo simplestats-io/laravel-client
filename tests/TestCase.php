@@ -3,8 +3,8 @@
 namespace LaracraftTech\SimplestatsClient\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Orchestra\Testbench\TestCase as Orchestra;
 use LaracraftTech\SimplestatsClient\SimplestatsClientServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {

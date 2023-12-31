@@ -2,9 +2,9 @@
 
 namespace LaracraftTech\SimplestatsClient;
 
+use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
 
 class SimplestatsClientServiceProvider extends PackageServiceProvider
 {
