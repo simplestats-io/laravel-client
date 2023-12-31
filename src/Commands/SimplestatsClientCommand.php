@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace LaracraftTech\SimplestatsClient\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class SimplestatsClientCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'simplestats-client';
 
     public $description = 'My command';
 

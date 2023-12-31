@@ -1,32 +1,33 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "laracraft-tech/simplestats-client",
+    "description": "Client for SimpleStats!",
     "keywords": [
-        ":vendor_name",
+        "laracraft-tech",
         "laravel",
-        ":package_slug"
+        "simplestats-client"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/laracraft-tech/simplestats-client",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Zacharias Creutznacher",
+            "email": "zacharias.creutznacher@gmail.com",
             "role": "Developer"
         }
     ],
     "require": {
         "php": "^8.1",
-        "spatie/laravel-package-tools": "^1.13.0",
-        "illuminate/contracts": "^9.0 || ^10.0"
+        "illuminate/contracts": "^9.0 || ^10.0",
+        "illuminate/database": "^9.0 || ^10.0",
+        "illuminate/support": "^9.0 || ^10.0",
+        "nesbot/carbon": "^2.66",
+        "spatie/laravel-package-tools": "^1.13.0"
     },
     "require-dev": {
-        "laravel/pint": "^1.0",
-        "nunomaduro/collision": "^7.9",
         "nunomaduro/larastan": "^2.0.1",
-        "orchestra/testbench": "^8.0",
-        "pestphp/pest": "^2.0",
-        "pestphp/pest-plugin-laravel": "^2.0",
+        "orchestra/testbench": "^7.0  || ^8.0",
+        "pestphp/pest": "^1.22 || ^2.0",
+        "pestphp/pest-plugin-laravel": "^1.22 || ^2.0",
         "phpstan/extension-installer": "^1.1",
         "phpstan/phpstan-deprecation-rules": "^1.0",
         "phpstan/phpstan-phpunit": "^1.0",
@@ -34,13 +35,13 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories"
+            "LaracraftTech\\SimplestatsClient\\": "src",
+            "LaracraftTech\\SimplestatsClient\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests"
+            "LaracraftTech\\SimplestatsClient\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -60,10 +61,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "LaracraftTech\\SimplestatsClient\\SimplestatsClientServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "SimplestatsClient": "LaracraftTech\\SimplestatsClient\\Facades\\SimplestatsClient"
             }
         }
     },
