@@ -5,14 +5,14 @@ namespace LaracraftTech\SimplestatsClient;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
+use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
 use LaracraftTech\SimplestatsClient\Listeners\UserLoginListener;
 use LaracraftTech\SimplestatsClient\Middleware\CheckTrackingCodes;
 use LaracraftTech\SimplestatsClient\Observers\UserObserver;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
-use Illuminate\Contracts\Http\Kernel;
 
 class SimplestatsClientServiceProvider extends PackageServiceProvider
 {
@@ -42,9 +42,6 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
         $this->registerMiddlewares();
     }
 
-    /**
-     * @return void
-     */
     private function registerApps(): void
     {
         $this->app->singleton(SimplestatsClient::class, function ($app) {
@@ -57,16 +54,12 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
         Event::listen(Login::class, [UserLoginListener::class, 'handle']);
     }
 
-    /**
-     * @return void
-     */
     private function registerObservers(): void
     {
         User::observe(UserObserver::class);
     }
 
     /**
-     * @return void
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
     private function registerMiddlewares(): void

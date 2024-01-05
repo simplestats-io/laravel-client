@@ -1,6 +1,5 @@
 <?php
 
-
 namespace LaracraftTech\SimplestatsClient\Listeners;
 
 use Illuminate\Auth\Events\Login;
