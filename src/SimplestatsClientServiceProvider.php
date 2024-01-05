@@ -3,12 +3,12 @@
 namespace LaracraftTech\SimplestatsClient;
 
 use App\Models\User;
+use Illuminate\Contracts\Http\Kernel;
+use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
 use LaracraftTech\SimplestatsClient\Middleware\CheckTrackingCodes;
 use LaracraftTech\SimplestatsClient\Observers\UserObserver;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
-use Illuminate\Contracts\Http\Kernel;
 
 class SimplestatsClientServiceProvider extends PackageServiceProvider
 {

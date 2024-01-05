@@ -12,7 +12,7 @@ class SimplestatsClient
     public function __construct(string $apiUrl, string $apiToken)
     {
         $this->httpClient = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $apiToken,
+            'Authorization' => 'Bearer '.$apiToken,
         ])->baseUrl($apiUrl.'/api/');
     }
 
