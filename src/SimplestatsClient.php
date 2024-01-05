@@ -18,15 +18,28 @@ class SimplestatsClient
 
     public function trackRegistration(User $user)
     {
+        $trackingData = session('simplestats.tracking');
+
         $payload = [
+            'id' => $user->getKey(),
+            'track_source' => $trackingData['source'] ?? '',
+            'track_medium' => $trackingData['medium'] ?? '',
+            'track_campaign' => $trackingData['campaign'] ?? '',
+            'track_term' => $trackingData['term'] ?? '',
+            'track_content' => $trackingData['content'] ?? '',
             'created_at' => $user->{$user::CREATED_AT}->format('Y-m-d H:i:s'),
-            'track_source' => session('simplestats.tracking.source') ?? '',
-            'track_medium' => session('simplestats.tracking.medium') ?? '',
-            'track_campaign' => session('simplestats.tracking.campaign') ?? '',
-            'track_term' => session('simplestats.tracking.term') ?? '',
-            'track_content' => session('simplestats.tracking.content') ?? '',
         ];
 
         return $this->httpClient->post('stats-user', $payload)->json();
+    }
+
+    public function trackLogin(User $user)
+    {
+        $payload = [
+            'stats_user_id' => $user->getKey(),
+            'created_at' => now()->format('Y-m-d H:i:s'),
+        ];
+
+        return $this->httpClient->post('stats-login', $payload)->json();
     }
 }
