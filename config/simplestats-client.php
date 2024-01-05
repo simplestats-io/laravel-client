@@ -14,5 +14,5 @@ return [
         'campaign' => ['utm_campaign'],
         'term' => ['utm_term'],
         'content' => ['utm_content'],
-    ]
+    ],
 ];
