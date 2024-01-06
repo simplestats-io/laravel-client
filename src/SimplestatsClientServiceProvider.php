@@ -11,6 +11,7 @@ use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
 use LaracraftTech\SimplestatsClient\Listeners\UserLoginListener;
 use LaracraftTech\SimplestatsClient\Middleware\CheckTrackingCodes;
 use LaracraftTech\SimplestatsClient\Observers\UserObserver;
+use LaracraftTech\SimplestatsClient\Services\ApiConnector;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -44,12 +45,12 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
 
     private function registerApps(): void
     {
-        $this->app->singleton(SimplestatsClient::class, function ($app) {
-            return new SimplestatsClient(config('simplestats-client.api_url'), config('simplestats-client.api_token'));
+        $this->app->singleton(ApiConnector::class, function ($app) {
+            return new ApiConnector(config('simplestats-client.api_url'), config('simplestats-client.api_token'));
         });
     }
 
-    private function registerEvents()
+    private function registerEvents(): void
     {
         Event::listen(Login::class, [UserLoginListener::class, 'handle']);
     }
@@ -60,7 +61,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
     }
 
     /**
-     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     * @throws BindingResolutionException
      */
     private function registerMiddlewares(): void
     {

@@ -4,17 +4,13 @@ namespace LaracraftTech\SimplestatsClient;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use LaracraftTech\SimplestatsClient\Services\ApiConnector;
 
 class SimplestatsClient
 {
-    private $httpClient;
-
-    public function __construct(string $apiUrl, string $apiToken)
-    {
-        $this->httpClient = Http::withHeaders([
-            'Authorization' => 'Bearer '.$apiToken,
-        ])->baseUrl($apiUrl);
-    }
+    public function __construct(
+        private ApiConnector $apiConnector
+    ) {}
 
     public function trackRegistration(User $user)
     {
@@ -30,7 +26,7 @@ class SimplestatsClient
             'created_at' => $user->{$user::CREATED_AT}->format('Y-m-d H:i:s'),
         ];
 
-        return $this->httpClient->post('stats-user', $payload)->json();
+        return $this->apiConnector->request('stats-user', $payload);
     }
 
     public function trackLogin(User $user)
@@ -40,6 +36,6 @@ class SimplestatsClient
             'created_at' => now()->format('Y-m-d H:i:s'),
         ];
 
-        return $this->httpClient->post('stats-login', $payload)->json();
+        return $this->apiConnector->request('stats-login', $payload);
     }
 }
