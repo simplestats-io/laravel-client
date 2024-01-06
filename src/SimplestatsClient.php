@@ -4,6 +4,7 @@ namespace LaracraftTech\SimplestatsClient;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use LaracraftTech\SimplestatsClient\Jobs\SendApiRequest;
 use LaracraftTech\SimplestatsClient\Services\ApiConnector;
 
 class SimplestatsClient
@@ -26,7 +27,7 @@ class SimplestatsClient
             'created_at' => $user->{$user::CREATED_AT}->format('Y-m-d H:i:s'),
         ];
 
-        return $this->apiConnector->request('stats-user', $payload);
+        return SendApiRequest::dispatch('stats-user', $payload);
     }
 
     public function trackLogin(User $user)
@@ -36,6 +37,6 @@ class SimplestatsClient
             'created_at' => now()->format('Y-m-d H:i:s'),
         ];
 
-        return $this->apiConnector->request('stats-login', $payload);
+        return SendApiRequest::dispatch('stats-login', $payload);
     }
 }

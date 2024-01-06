@@ -15,4 +15,9 @@ return [
         'term' => ['utm_term'],
         'content' => ['utm_content'],
     ],
+
+    /**
+     * Queue
+     */
+    'queue' => env('SIMPLESTATS_QUEUE', 'default')
 ];
