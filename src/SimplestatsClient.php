@@ -13,7 +13,7 @@ class SimplestatsClient
     {
         $this->httpClient = Http::withHeaders([
             'Authorization' => 'Bearer '.$apiToken,
-        ])->baseUrl($apiUrl.'/api/');
+        ])->baseUrl($apiUrl);
     }
 
     public function trackRegistration(User $user)
