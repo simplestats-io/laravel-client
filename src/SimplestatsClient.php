@@ -3,7 +3,6 @@
 namespace LaracraftTech\SimplestatsClient;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
 use LaracraftTech\SimplestatsClient\Jobs\SendApiRequest;
 use LaracraftTech\SimplestatsClient\Services\ApiConnector;
 
@@ -11,7 +10,8 @@ class SimplestatsClient
 {
     public function __construct(
         private ApiConnector $apiConnector
-    ) {}
+    ) {
+    }
 
     public function trackRegistration(User $user)
     {

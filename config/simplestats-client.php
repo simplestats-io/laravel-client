@@ -19,5 +19,5 @@ return [
     /**
      * Queue
      */
-    'queue' => env('SIMPLESTATS_QUEUE', 'default')
+    'queue' => env('SIMPLESTATS_QUEUE', 'default'),
 ];
