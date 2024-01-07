@@ -5,6 +5,7 @@ namespace LaracraftTech\SimplestatsClient\Services;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use LaracraftTech\SimplestatsClient\Enums\HttpMethod;
+use LaracraftTech\SimplestatsClient\Exceptions\ApiRequestFailed;
 
 class ApiConnector
 {
@@ -18,10 +19,18 @@ class ApiConnector
         ])->baseUrl($apiUrl);
     }
 
+    /**
+     * @throws ApiRequestFailed
+     */
     public function request(string $route, array $payload, HttpMethod $method = HttpMethod::POST)
     {
         $method = strtolower($method->value);
+        $response = $this->httpClient->$method($route, $payload);
 
-        return $this->httpClient->$method($route, $payload)->json();
+        if (! $response->successful()) {
+            throw new ApiRequestFailed('Reason: '. $response->json()['message'] ?? 'unknown', $response->status());
+        }
+
+        return $response->json();
     }
 }
