@@ -14,6 +14,7 @@ class ApiConnector
     {
         $this->httpClient = Http::withHeaders([
             'Authorization' => 'Bearer '.$apiToken,
+            'Accept' => 'application/json',
         ])->baseUrl($apiUrl);
     }
 
