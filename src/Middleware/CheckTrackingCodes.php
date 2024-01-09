@@ -38,7 +38,7 @@ class CheckTrackingCodes
     private function getInitialReferer()
     {
         if (isset($_SERVER['HTTP_REFERER']) && ! str($_SERVER['HTTP_REFERER'])->contains(config('app.url'))) {
-            return getBaseURL($_SERVER['HTTP_REFERER']);
+            return parse_url($_SERVER['HTTP_REFERER'])['host'];
         }
 
         return '';

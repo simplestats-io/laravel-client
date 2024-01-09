@@ -37,10 +37,7 @@
         "psr-4": {
             "LaracraftTech\\SimplestatsClient\\": "src",
             "LaracraftTech\\SimplestatsClient\\Database\\Factories\\": "database/factories"
-        },
-        "files": [
-            "src/helpers.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
