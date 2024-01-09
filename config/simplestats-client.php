@@ -9,7 +9,7 @@ return [
      * Add as much as you like here...
      */
     'tracking_codes' => [
-        'source' => ['utm_source', 'ref', 'referrer'],
+        'source' => ['utm_source', 'ref', 'referer', 'referrer'],
         'medium' => ['utm_medium'],
         'campaign' => ['utm_campaign'],
         'term' => ['utm_term'],

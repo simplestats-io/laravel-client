@@ -18,13 +18,29 @@ class CheckTrackingCodes
             return [$key => null];
         });
 
+        $sourceKey = $collectedTrackingData->keys()->first();
+
         // remove empty/null elements...
         $filtered = $collectedTrackingData->filter();
+
+        // fallback source will be the referer if it's available...
+        if (! $filtered->has($sourceKey) && !empty($this->getInitialReferer())) {
+            $filtered->put($sourceKey, $_SERVER['HTTP_REFERER']);
+        }
 
         if ($filtered->isNotEmpty()) {
             $request->session()->put(['simplestats.tracking' => $filtered]);
         }
 
         return $next($request);
+    }
+
+    private function getInitialReferer()
+    {
+        if (isset($_SERVER['HTTP_REFERER']) && ! str($_SERVER['HTTP_REFERER'])->contains(config('app.url'))) {
+            return $_SERVER['HTTP_REFERER'];
+        }
+
+        return '';
     }
 }
