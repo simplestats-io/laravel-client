@@ -3,17 +3,13 @@
 namespace LaracraftTech\SimplestatsClient;
 
 use App\Models\User;
+use Illuminate\Foundation\Bus\PendingDispatch;
 use LaracraftTech\SimplestatsClient\Jobs\SendApiRequest;
 use LaracraftTech\SimplestatsClient\Services\ApiConnector;
 
 class SimplestatsClient
 {
-    public function __construct(
-        private ApiConnector $apiConnector
-    ) {
-    }
-
-    public function trackRegistration(User $user)
+    public function trackRegistration(User $user): PendingDispatch
     {
         $trackingData = session('simplestats.tracking');
 
@@ -30,7 +26,7 @@ class SimplestatsClient
         return SendApiRequest::dispatch('stats-user', $payload);
     }
 
-    public function trackLogin(User $user)
+    public function trackLogin(User $user): PendingDispatch
     {
         $payload = [
             'stats_user_id' => $user->getKey(),

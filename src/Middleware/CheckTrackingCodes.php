@@ -24,8 +24,8 @@ class CheckTrackingCodes
         $filtered = $collectedTrackingData->filter();
 
         // fallback source will be the referer if it's available...
-        if (! $filtered->has($sourceKey) && !empty($this->getInitialReferer())) {
-            $filtered->put($sourceKey, $_SERVER['HTTP_REFERER']);
+        if (! $filtered->has($sourceKey) && $referer = $this->getInitialReferer()) {
+            $filtered->put($sourceKey, $referer);
         }
 
         if ($filtered->isNotEmpty()) {
@@ -38,7 +38,7 @@ class CheckTrackingCodes
     private function getInitialReferer()
     {
         if (isset($_SERVER['HTTP_REFERER']) && ! str($_SERVER['HTTP_REFERER'])->contains(config('app.url'))) {
-            return $_SERVER['HTTP_REFERER'];
+            return getBaseURL($_SERVER['HTTP_REFERER']);
         }
 
         return '';
