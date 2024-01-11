@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Event;
 use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
 use LaracraftTech\SimplestatsClient\Listeners\UserLoginListener;
 use LaracraftTech\SimplestatsClient\Middleware\CheckTrackingCodes;
+use LaracraftTech\SimplestatsClient\Observers\PaymentObserver;
 use LaracraftTech\SimplestatsClient\Observers\UserObserver;
 use LaracraftTech\SimplestatsClient\Services\ApiConnector;
 use Spatie\LaravelPackageTools\Package;
@@ -52,12 +53,13 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
 
     private function registerEvents(): void
     {
-        Event::listen(Login::class, [UserLoginListener::class, 'handle']);
+        Event::listen(config('simplestats-client.tracking_types.login.event'), [UserLoginListener::class, 'handle']);
     }
 
     private function registerObservers(): void
     {
-        User::observe(UserObserver::class);
+        config('simplestats-client.tracking_types.registration.model')::observe(UserObserver::class);
+        config('simplestats-client.tracking_types.payment.model')::observe(PaymentObserver::class);
     }
 
     /**

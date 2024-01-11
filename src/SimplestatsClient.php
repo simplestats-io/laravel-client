@@ -2,16 +2,30 @@
 
 namespace LaracraftTech\SimplestatsClient;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use LaracraftTech\SimplestatsClient\Jobs\SendApiRequest;
-use LaracraftTech\SimplestatsClient\Services\ApiConnector;
 
 class SimplestatsClient
 {
+    const DATETIME_FORMAT = 'Y-m-d H:i:s';
+
+    public function trackLogin(User $user): PendingDispatch
+    {
+        $trackingType = config('simplestats-client.tracking_types.login');
+
+        $payload = [
+            'stats_user_id' => $user->getKey(),
+            'time' => $this->getTime($trackingType),
+        ];
+
+        return SendApiRequest::dispatch('stats-login', $payload);
+    }
+
     public function trackRegistration(User $user): PendingDispatch
     {
         $trackingData = session('simplestats.tracking');
+        $trackingType = config('simplestats-client.tracking_types.registration');
 
         $payload = [
             'id' => $user->getKey(),
@@ -20,19 +34,30 @@ class SimplestatsClient
             'track_campaign' => $trackingData['campaign'] ?? '',
             'track_term' => $trackingData['term'] ?? '',
             'track_content' => $trackingData['content'] ?? '',
-            'created_at' => $user->{$user::CREATED_AT}->format('Y-m-d H:i:s'),
+            'time' => $this->getTime($trackingType, $user),
         ];
 
         return SendApiRequest::dispatch('stats-user', $payload);
     }
 
-    public function trackLogin(User $user): PendingDispatch
+    public function trackPayment($payment): PendingDispatch
     {
+        $trackingType = config('simplestats-client.tracking_types.payment');
+
+        $user = $trackingType['user_resolver']($payment);
+
         $payload = [
             'stats_user_id' => $user->getKey(),
-            'created_at' => now()->format('Y-m-d H:i:s'),
+            'gross' => $trackingType['calculator']['gross']($payment),
+            'net' => $trackingType['calculator']['net']($payment),
+            'time' => $this->getTime($trackingType, $payment),
         ];
 
-        return SendApiRequest::dispatch('stats-login', $payload);
+        return SendApiRequest::dispatch('stats-payment', $payload);
+    }
+
+    private function getTime($trackingType, $model = null)
+    {
+        return $trackingType['time_resolver']($model)->format(self::DATETIME_FORMAT);
     }
 }

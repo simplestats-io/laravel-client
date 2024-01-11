@@ -5,10 +5,10 @@ namespace LaracraftTech\SimplestatsClient\Observers;
 use Illuminate\Foundation\Auth\User;
 use LaracraftTech\SimplestatsClient\Facades\SimplestatsClient;
 
-class UserObserver
+class PaymentObserver
 {
-    public function created(User $user)
+    public function created($payment)
     {
-        SimplestatsClient::trackRegistration($user);
+        SimplestatsClient::trackPayment($payment);
     }
 }
