@@ -8,8 +8,6 @@ use LaracraftTech\SimplestatsClient\Jobs\SendApiRequest;
 
 class SimplestatsClient
 {
-    const DATETIME_FORMAT = 'Y-m-d H:i:s';
-
     public function trackLogin(User $user): PendingDispatch
     {
         $trackingType = config('simplestats-client.tracking_types.login');
@@ -58,6 +56,6 @@ class SimplestatsClient
 
     private function getTime($trackingType, $model = null)
     {
-        return $trackingType['time_resolver']($model)->format(self::DATETIME_FORMAT);
+        return $trackingType['time_resolver']($model)->setTimezone('UTC')->format('Y-m-d H:i:s');
     }
 }
