@@ -9,6 +9,6 @@ class UserObserver
 {
     public function created(User $user)
     {
-        SimplestatsClient::trackRegistration($user);
+        SimplestatsClient::trackUser($user);
     }
 }

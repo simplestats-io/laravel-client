@@ -22,10 +22,10 @@ class SimplestatsClient
         return SendApiRequest::dispatch('stats-login', $payload);
     }
 
-    public function trackRegistration(User $user): PendingDispatch
+    public function trackUser(User $user): PendingDispatch
     {
         $trackingData = session('simplestats.tracking');
-        $trackingType = config('simplestats-client.tracking_types.registration');
+        $trackingType = config('simplestats-client.tracking_types.user');
 
         $payload = [
             'id' => $user->getKey(),
@@ -48,8 +48,8 @@ class SimplestatsClient
 
         $payload = [
             'stats_user_id' => $user->getKey(),
-            'gross' => $trackingType['calculator']['gross']($payment),
-            'net' => $trackingType['calculator']['net']($payment),
+            'gross' => (float) $trackingType['calculator']['gross']($payment),
+            'net' => (float) $trackingType['calculator']['net']($payment),
             'time' => $this->getTime($trackingType, $payment),
         ];
 

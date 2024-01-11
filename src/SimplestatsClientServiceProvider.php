@@ -58,7 +58,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
 
     private function registerObservers(): void
     {
-        config('simplestats-client.tracking_types.registration.model')::observe(UserObserver::class);
+        config('simplestats-client.tracking_types.user.model')::observe(UserObserver::class);
         config('simplestats-client.tracking_types.payment.model')::observe(PaymentObserver::class);
     }
 

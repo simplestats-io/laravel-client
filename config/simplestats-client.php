@@ -33,7 +33,7 @@ return [
             'event' => Login::class,
             'time_resolver' => fn() => now(),
         ],
-        'registration' => [
+        'user' => [
             'model' => User::class,
             'time_resolver' => fn($model) => $model->{$model::CREATED_AT},
         ],
