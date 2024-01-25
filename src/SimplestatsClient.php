@@ -27,11 +27,11 @@ class SimplestatsClient
 
         $payload = [
             'id' => $user->getKey(),
-            'track_source' => $trackingData['source'] ?? '',
-            'track_medium' => $trackingData['medium'] ?? '',
-            'track_campaign' => $trackingData['campaign'] ?? '',
-            'track_term' => $trackingData['term'] ?? '',
-            'track_content' => $trackingData['content'] ?? '',
+            'track_source' => $trackingData['source'] ?? null,
+            'track_medium' => $trackingData['medium'] ?? null,
+            'track_campaign' => $trackingData['campaign'] ?? null,
+            'track_term' => $trackingData['term'] ?? null,
+            'track_content' => $trackingData['content'] ?? null,
             'time' => $this->getTime($trackingType, $user),
         ];
 
