@@ -1,5 +1,5 @@
 <?php
 
-use LaracraftTech\SimplestatsClient\Tests\TestCase;
+use SimpleStatsIo\LaravelClient\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);

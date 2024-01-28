@@ -1,9 +1,9 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Listeners;
+namespace SimpleStatsIo\LaravelClient\Listeners;
 
 use Illuminate\Auth\Events\Login;
-use LaracraftTech\SimplestatsClient\Facades\SimplestatsClient;
+use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class UserLoginListener
 {

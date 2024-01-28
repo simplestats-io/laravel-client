@@ -1,6 +1,6 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Commands;
+namespace SimpleStatsIo\LaravelClient\Commands;
 
 use Illuminate\Console\Command;
 

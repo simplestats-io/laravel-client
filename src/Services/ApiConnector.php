@@ -1,11 +1,11 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Services;
+namespace SimpleStatsIo\LaravelClient\Services;
 
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
-use LaracraftTech\SimplestatsClient\Enums\HttpMethod;
-use LaracraftTech\SimplestatsClient\Exceptions\ApiRequestFailed;
+use SimpleStatsIo\LaravelClient\Enums\HttpMethod;
+use SimpleStatsIo\LaravelClient\Exceptions\ApiRequestFailed;
 
 class ApiConnector
 {

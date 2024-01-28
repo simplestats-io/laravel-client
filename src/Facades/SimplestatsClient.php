@@ -1,16 +1,16 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Facades;
+namespace SimpleStatsIo\LaravelClient\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \LaracraftTech\SimplestatsClient\SimplestatsClient
+ * @see \SimpleStatsIo\LaravelClient\SimplestatsClient
  */
 class SimplestatsClient extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \LaracraftTech\SimplestatsClient\SimplestatsClient::class;
+        return \SimpleStatsIo\LaravelClient\SimplestatsClient::class;
     }
 }

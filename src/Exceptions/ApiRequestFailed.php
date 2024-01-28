@@ -1,6 +1,6 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Exceptions;
+namespace SimpleStatsIo\LaravelClient\Exceptions;
 
 use Exception;
 use Throwable;

@@ -1,9 +1,9 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Observers;
+namespace SimpleStatsIo\LaravelClient\Observers;
 
 use Illuminate\Foundation\Auth\User;
-use LaracraftTech\SimplestatsClient\Facades\SimplestatsClient;
+use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class UserObserver
 {

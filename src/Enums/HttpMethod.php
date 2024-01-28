@@ -1,6 +1,6 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Enums;
+namespace SimpleStatsIo\LaravelClient\Enums;
 
 enum HttpMethod: string
 {

@@ -1,10 +1,10 @@
 # Client for SimpleStats!
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/laracraft-tech/simplestats-client.svg?style=flat-square)](https://packagist.org/packages/laracraft-tech/simplestats-client)
-[![Tests](https://github.com/laracraft-tech/simplestats-client/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/laracraft-tech/simplestats-client/actions/workflows/run-tests.yml)
-[![Check & fix styling](https://github.com/laracraft-tech/simplestats-client/actions/workflows/fix-php-code-style-issues.yml/badge.svg?branch=main)](https://github.com/laracraft-tech/simplestats-client/actions/workflows/fix-php-code-style-issues.yml)
-[![License](https://img.shields.io/packagist/l/laracraft-tech/simplestats-client.svg?style=flat-square)](https://packagist.org/packages/laracraft-tech/simplestats-client)
-<!--[![Total Downloads](https://img.shields.io/packagist/dt/laracraft-tech/simplestats-client.svg?style=flat-square)](https://packagist.org/packages/laracraft-tech/simplestats-client)-->
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/simplestats-io/laravel-client.svg?style=flat-square)](https://packagist.org/packages/simplestats-io/laravel-client)
+[![Tests](https://github.com/simplestats-io/laravel-client/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/simplestats-io/laravel-client/actions/workflows/run-tests.yml)
+[![Check & fix styling](https://github.com/simplestats-io/laravel-client/actions/workflows/fix-php-code-style-issues.yml/badge.svg?branch=main)](https://github.com/simplestats-io/laravel-client/actions/workflows/fix-php-code-style-issues.yml)
+[![License](https://img.shields.io/packagist/l/simplestats-io/laravel-client.svg?style=flat-square)](https://packagist.org/packages/simplestats-io/laravel-client)
+<!--[![Total Downloads](https://img.shields.io/packagist/dt/simplestats-io/laravel-client.svg?style=flat-square)](https://packagist.org/packages/simplestats-io/laravel-client)-->
 
 This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
 
@@ -13,7 +13,7 @@ This is where your description should go. Limit it to a paragraph or two. Consid
 You can install the package via composer:
 
 ```bash
-composer require laracraft-tech/simplestats-client
+composer require simplestats-io/laravel-client
 ```
 
 You can publish and run the migrations with:
@@ -45,8 +45,8 @@ php artisan vendor:publish --tag="simplestats-client-views"
 ## Usage
 
 ```php
-$simplestatsClient = new LaracraftTech\SimplestatsClient();
-echo $simplestatsClient->echoPhrase('Hello, LaracraftTech!');
+$simplestatsClient = new SimpleStatsIo\LaravelClient();
+echo $simplestatsClient->echoPhrase('Hello, SimpleStatsIo!');
 ```
 
 ## Testing

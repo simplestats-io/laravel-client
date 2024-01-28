@@ -1,18 +1,18 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient;
+namespace SimpleStatsIo\LaravelClient;
 
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
-use LaracraftTech\SimplestatsClient\Commands\SimplestatsClientCommand;
-use LaracraftTech\SimplestatsClient\Listeners\UserLoginListener;
-use LaracraftTech\SimplestatsClient\Middleware\CheckTrackingCodes;
-use LaracraftTech\SimplestatsClient\Observers\PaymentObserver;
-use LaracraftTech\SimplestatsClient\Observers\UserObserver;
-use LaracraftTech\SimplestatsClient\Services\ApiConnector;
+use SimpleStatsIo\LaravelClient\Commands\SimplestatsClientCommand;
+use SimpleStatsIo\LaravelClient\Listeners\UserLoginListener;
+use SimpleStatsIo\LaravelClient\Middleware\CheckTrackingCodes;
+use SimpleStatsIo\LaravelClient\Observers\PaymentObserver;
+use SimpleStatsIo\LaravelClient\Observers\UserObserver;
+use SimpleStatsIo\LaravelClient\Services\ApiConnector;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 

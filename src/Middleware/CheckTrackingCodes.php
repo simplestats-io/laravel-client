@@ -1,6 +1,6 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Middleware;
+namespace SimpleStatsIo\LaravelClient\Middleware;
 
 use Closure;
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient;
+namespace SimpleStatsIo\LaravelClient;
 
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Bus\PendingDispatch;
-use LaracraftTech\SimplestatsClient\Jobs\SendApiRequest;
+use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 
 class SimplestatsClient
 {

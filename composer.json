@@ -1,12 +1,12 @@
 {
-    "name": "laracraft-tech/simplestats-client",
+    "name": "simplestats-io/laravel-client",
     "description": "Client for SimpleStats!",
     "keywords": [
-        "laracraft-tech",
+        "simplestats-io",
         "laravel",
         "simplestats-client"
     ],
-    "homepage": "https://github.com/laracraft-tech/simplestats-client",
+    "homepage": "https://github.com/simplestats-io/laravel-client",
     "license": "MIT",
     "authors": [
         {
@@ -35,13 +35,13 @@
     },
     "autoload": {
         "psr-4": {
-            "LaracraftTech\\SimplestatsClient\\": "src",
-            "LaracraftTech\\SimplestatsClient\\Database\\Factories\\": "database/factories"
+            "SimpleStatsIo\\LaravelClient\\": "src",
+            "SimpleStatsIo\\LaravelClient\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "LaracraftTech\\SimplestatsClient\\Tests\\": "tests"
+            "SimpleStatsIo\\LaravelClient\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -61,10 +61,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "LaracraftTech\\SimplestatsClient\\SimplestatsClientServiceProvider"
+                "SimpleStatsIo\\LaravelClient\\SimplestatsClientServiceProvider"
             ],
             "aliases": {
-                "SimplestatsClient": "LaracraftTech\\SimplestatsClient\\Facades\\SimplestatsClient"
+                "SimplestatsClient": "SimpleStatsIo\\LaravelClient\\Facades\\SimplestatsClient"
             }
         }
     },

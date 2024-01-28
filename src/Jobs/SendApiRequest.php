@@ -1,14 +1,14 @@
 <?php
 
-namespace LaracraftTech\SimplestatsClient\Jobs;
+namespace SimpleStatsIo\LaravelClient\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use LaracraftTech\SimplestatsClient\Enums\HttpMethod;
-use LaracraftTech\SimplestatsClient\Services\ApiConnector;
+use SimpleStatsIo\LaravelClient\Enums\HttpMethod;
+use SimpleStatsIo\LaravelClient\Services\ApiConnector;
 
 class SendApiRequest implements ShouldQueue
 {
