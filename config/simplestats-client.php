@@ -6,6 +6,14 @@ use Illuminate\Auth\Events\Login;
 use Laravel\Paddle\Transaction;
 
 return [
+    /**
+     * Do not turn off!!
+     */
+    'enabled' => env('SIMPLESTATS_ENABLED', true),
+
+    /**
+     * API Credentials
+     */
     'api_url' => env('SIMPLESTATS_API_URL', 'https://simplestats.com/api/v1/'),
     'api_token' => env('SIMPLESTATS_API_TOKEN'),
 

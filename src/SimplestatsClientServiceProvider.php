@@ -38,6 +38,10 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
     {
         parent::boot();
 
+        if (!config('simplestats-client.enabled')) {
+            return;
+        }
+
         $this->registerApps();
         $this->registerEvents();
         $this->registerObservers();
