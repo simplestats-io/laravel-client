@@ -56,6 +56,6 @@ class SimplestatsClient
 
     private function getTime($trackingType, $model = null)
     {
-        return $trackingType['time_resolver']($model)->setTimezone('UTC')->format('Y-m-d H:i:s');
+        return $trackingType['time_resolver']($model)->format('Y-m-d');
     }
 }
