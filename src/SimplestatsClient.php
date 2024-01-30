@@ -2,29 +2,28 @@
 
 namespace SimpleStatsIo\LaravelClient;
 
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Bus\PendingDispatch;
-use Laravel\SerializableClosure\SerializableClosure;
+use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
+use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 
 class SimplestatsClient
 {
-    public function trackLogin(User $user): PendingDispatch
-    {
-        $trackingType = config('simplestats-client.tracking_types.login');
+    const TIME_FORMAT = 'Y-m-d';
 
+    public function trackLogin(TrackableUser $user): PendingDispatch
+    {
         $payload = [
             'stats_user_id' => $user->getKey(),
-            'time' => $this->getTime($trackingType),
+            'time' => now()->format(self::TIME_FORMAT),
         ];
 
         return SendApiRequest::dispatch('stats-login', $payload);
     }
 
-    public function trackUser(User $user): PendingDispatch
+    public function trackUser(TrackableUser $user): PendingDispatch
     {
         $trackingData = session('simplestats.tracking');
-        $trackingType = config('simplestats-client.tracking_types.user');
 
         $payload = [
             'id' => $user->getKey(),
@@ -33,35 +32,22 @@ class SimplestatsClient
             'track_campaign' => $trackingData['campaign'] ?? null,
             'track_term' => $trackingData['term'] ?? null,
             'track_content' => $trackingData['content'] ?? null,
-            'time' => $this->getTime($trackingType, $user),
+            'time' => $user->getTrackingTime()->format(self::TIME_FORMAT),
         ];
 
         return SendApiRequest::dispatch('stats-user', $payload);
     }
 
-    public function trackPayment($payment): PendingDispatch
+    public function trackPayment(TrackablePayment $payment): PendingDispatch
     {
-        $trackingType = config('simplestats-client.tracking_types.payment');
-
-        $user = $this->unserializeClosure($trackingType['user_resolver'])($payment);
-
         $payload = [
-            'stats_user_id' => $user->getKey(),
-            'gross' => (float) $this->unserializeClosure($trackingType['calculator']['gross'])($payment),
-            'net' => (float) $this->unserializeClosure($trackingType['calculator']['net'])($payment),
-            'time' => $this->getTime($trackingType, $payment),
+            'stats_user_id' => $payment->getTrackingUser()->getKey(),
+            'gross' => $payment->getTrackingGross(),
+            'net' => $payment->getTrackingNet(),
+            'currency' => $payment->getTrackingCurrency(),
+            'time' => $payment->getTrackingTime()->format(self::TIME_FORMAT),
         ];
 
         return SendApiRequest::dispatch('stats-payment', $payload);
-    }
-
-    private function getTime($trackingType, $model = null)
-    {
-        return $this->unserializeClosure($trackingType['time_resolver'])($model)->format('Y-m-d');
-    }
-
-    private function unserializeClosure(SerializableClosure $serializedClosure): callable
-    {
-        return unserialize(serialize($serializedClosure))->getClosure();
     }
 }

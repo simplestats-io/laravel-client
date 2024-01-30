@@ -2,12 +2,12 @@
 
 namespace SimpleStatsIo\LaravelClient\Observers;
 
-use Illuminate\Foundation\Auth\User;
+use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class UserObserver
 {
-    public function created(User $user)
+    public function created(TrackableUser $user)
     {
         SimplestatsClient::trackUser($user);
     }

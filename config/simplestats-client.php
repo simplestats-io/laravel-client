@@ -3,8 +3,6 @@
 // TODO taylor like doc blocks
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
-use Laravel\Paddle\Transaction;
-use Laravel\SerializableClosure\SerializableClosure;
 
 return [
     /**
@@ -40,21 +38,14 @@ return [
     'tracking_types' => [
         'login' => [
             'event' => Login::class,
-            'time_resolver' => new SerializableClosure(fn() => now()),
         ],
+        // Make sure to implement the TrackableUser interface
         'user' => [
             'model' => User::class,
-            'time_resolver' => new SerializableClosure(fn(User $model) => $model->{$model::CREATED_AT}),
         ],
-        // TODO set real defaults (maybe null and write this into the docs as an default example for paddle)
+        // Make sure to implement the TrackablePayment interface
         'payment' => [
-            'model' => Transaction::class,
-            'calculator' => [
-                'gross' => new SerializableClosure(fn(Transaction $model) => $model->total),
-                'net' => new SerializableClosure(fn(Transaction $model) => $model->total - $model->tax - (0.05 * $model->total + 0.50)),
-            ],
-            'user_resolver' => new SerializableClosure(fn(Transaction $model) => $model->billable),
-            'time_resolver' => new SerializableClosure(fn(Transaction $model) => $model->{$model::CREATED_AT}),
+            'model' => \App\Models\Transaction::class,
         ],
     ]
 ];
