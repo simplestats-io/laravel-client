@@ -4,6 +4,7 @@
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 use Laravel\Paddle\Transaction;
+use Laravel\SerializableClosure\SerializableClosure;
 
 return [
     /**
@@ -39,21 +40,21 @@ return [
     'tracking_types' => [
         'login' => [
             'event' => Login::class,
-            'time_resolver' => fn() => now(),
+            'time_resolver' => new SerializableClosure(fn() => now()),
         ],
         'user' => [
             'model' => User::class,
-            'time_resolver' => fn($model) => $model->{$model::CREATED_AT},
+            'time_resolver' => new SerializableClosure(fn(User $model) => $model->{$model::CREATED_AT}),
         ],
         // TODO set real defaults (maybe null and write this into the docs as an default example for paddle)
         'payment' => [
             'model' => Transaction::class,
             'calculator' => [
-                'gross' => fn($model) => $model->total,
-                'net' => fn($model) => $model->total - $model->tax - (0.05 * $model->total + 0.50),
+                'gross' => new SerializableClosure(fn(Transaction $model) => $model->total),
+                'net' => new SerializableClosure(fn(Transaction $model) => $model->total - $model->tax - (0.05 * $model->total + 0.50)),
             ],
-            'user_resolver' => fn($model) => $model->billable,
-            'time_resolver' => fn($model) => $model->{$model::CREATED_AT},
+            'user_resolver' => new SerializableClosure(fn(Transaction $model) => $model->billable),
+            'time_resolver' => new SerializableClosure(fn(Transaction $model) => $model->{$model::CREATED_AT}),
         ],
     ]
 ];

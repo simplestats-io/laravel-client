@@ -4,6 +4,7 @@ namespace SimpleStatsIo\LaravelClient;
 
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Bus\PendingDispatch;
+use Laravel\SerializableClosure\SerializableClosure;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 
 class SimplestatsClient
@@ -42,12 +43,12 @@ class SimplestatsClient
     {
         $trackingType = config('simplestats-client.tracking_types.payment');
 
-        $user = $trackingType['user_resolver']($payment);
+        $user = $this->unserializeClosure($trackingType['user_resolver'])($payment);
 
         $payload = [
             'stats_user_id' => $user->getKey(),
-            'gross' => (float) $trackingType['calculator']['gross']($payment),
-            'net' => (float) $trackingType['calculator']['net']($payment),
+            'gross' => (float) $this->unserializeClosure($trackingType['calculator']['gross'])($payment),
+            'net' => (float) $this->unserializeClosure($trackingType['calculator']['net'])($payment),
             'time' => $this->getTime($trackingType, $payment),
         ];
 
@@ -56,6 +57,11 @@ class SimplestatsClient
 
     private function getTime($trackingType, $model = null)
     {
-        return $trackingType['time_resolver']($model)->format('Y-m-d');
+        return $this->unserializeClosure($trackingType['time_resolver'])($model)->format('Y-m-d');
+    }
+
+    private function unserializeClosure(SerializableClosure $serializedClosure): callable
+    {
+        return unserialize(serialize($serializedClosure))->getClosure();
     }
 }
