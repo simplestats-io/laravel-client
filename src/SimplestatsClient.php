@@ -9,7 +9,7 @@ use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 
 class SimplestatsClient
 {
-    const TIME_FORMAT = 'Y-m-d';
+    const TIME_FORMAT = 'Y-m-d H:i:s';
 
     public function trackLogin(TrackableUser $user): PendingDispatch
     {
