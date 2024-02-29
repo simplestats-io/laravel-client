@@ -1,6 +1,7 @@
 <?php
 
 // TODO taylor like doc blocks
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 

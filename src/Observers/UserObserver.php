@@ -3,12 +3,31 @@
 namespace SimpleStatsIo\LaravelClient\Observers;
 
 use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
+use SimpleStatsIo\LaravelClient\Contracts\TrackableUserWithCondition;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class UserObserver
 {
     public function created(TrackableUser $user)
     {
-        SimplestatsClient::trackUser($user);
+        if ($user instanceof TrackableUserWithCondition) {
+            if ($user->passTrackingCondition()) {
+                ray('track create condition');
+                SimplestatsClient::trackUser($user);
+            }
+        } else {
+            ray('track create normal');
+            SimplestatsClient::trackUser($user);
+        }
+    }
+
+    public function updated(TrackableUser $user)
+    {
+        if ($user instanceof TrackableUserWithCondition) {
+            if ($user->wasChanged($user->getTrackingConditionFields()) && $user->passTrackingCondition()) {
+                ray('track update condition');
+                SimplestatsClient::trackUser($user);
+            }
+        }
     }
 }
