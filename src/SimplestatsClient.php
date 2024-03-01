@@ -41,6 +41,7 @@ class SimplestatsClient
     public function trackPayment(TrackablePayment $payment): PendingDispatch
     {
         $payload = [
+            'id' => $payment->getKey(),
             'stats_user_id' => $payment->getTrackingUser()->getKey(),
             'gross' => $payment->getTrackingGross(),
             'net' => $payment->getTrackingNet(),
