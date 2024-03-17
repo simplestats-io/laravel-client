@@ -46,7 +46,7 @@ return [
         ],
         // Make sure to implement the TrackablePayment interface
         'payment' => [
-            'model' => \App\Models\Transaction::class,
+            'model' => null,
         ],
     ]
 ];

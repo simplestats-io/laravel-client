@@ -13,10 +13,7 @@ class ApiConnector
 
     public function __construct(string $apiUrl, string $apiToken)
     {
-        $this->httpClient = Http::withHeaders([
-            'Authorization' => 'Bearer '.$apiToken,
-            'Accept' => 'application/json',
-        ])->baseUrl($apiUrl);
+        $this->httpClient = Http::baseUrl($apiUrl)->withToken($apiToken)->acceptJson();
     }
 
     /**
@@ -28,7 +25,8 @@ class ApiConnector
         $response = $this->httpClient->$method($route, $payload);
 
         if (! $response->successful()) {
-            throw new ApiRequestFailed('Reason: '. $response->json()['message'] ?? 'unknown', $response->status());
+            $json = array_merge(['message' => 'unknown'], $response->json() ?? []);
+            throw new ApiRequestFailed('Reason: '. $json['message'], $response->status());
         }
 
         return $response->json();

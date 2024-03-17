@@ -5,6 +5,7 @@ namespace SimpleStatsIo\LaravelClient\Tests;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use SimpleStatsIo\LaravelClient\SimplestatsClientServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use SimpleStatsIo\LaravelClient\Tests\Models\User;
 
 class TestCase extends Orchestra
 {

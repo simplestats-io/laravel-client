@@ -12,11 +12,9 @@ class UserObserver
     {
         if ($user instanceof TrackableUserWithCondition) {
             if ($user->passTrackingCondition()) {
-                ray('track create condition');
                 SimplestatsClient::trackUser($user);
             }
         } else {
-            ray('track create normal');
             SimplestatsClient::trackUser($user);
         }
     }
@@ -25,7 +23,6 @@ class UserObserver
     {
         if ($user instanceof TrackableUserWithCondition) {
             if ($user->wasChanged($user->getTrackingConditionFields()) && $user->passTrackingCondition()) {
-                ray('track update condition');
                 SimplestatsClient::trackUser($user);
             }
         }
