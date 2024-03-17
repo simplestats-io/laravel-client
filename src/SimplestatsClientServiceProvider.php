@@ -27,8 +27,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
          */
         $package
             ->name('simplestats-client')
-            ->hasConfigFile()
-            ->hasCommand(SimplestatsClientCommand::class);
+            ->hasConfigFile();
     }
 
     /**
