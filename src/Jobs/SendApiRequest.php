@@ -18,11 +18,10 @@ class SendApiRequest implements ShouldQueue
      * Let's retry 15 times (if the stats tool is temporary not reachable or has a heavy outage).
      * First, we try more often, and after seven times, we only try every day (the last item in the backoff array)
      * Means we have one week to fix a heavy outage...
-     *
-     * @var int
      */
     public int $tries = 15;
-    public array $backoff = [5, 10, 60, 600, 3600, 12*3600, 3600*24];
+
+    public array $backoff = [5, 10, 60, 600, 3600, 12 * 3600, 3600 * 24];
 
     public function __construct(
         private readonly string $route,

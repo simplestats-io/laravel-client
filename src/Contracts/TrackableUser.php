@@ -8,9 +8,6 @@ interface TrackableUser
 {
     /**
      * Get the time when the user registered.
-     *
-     * @return CarbonInterface
      */
     public function getTrackingTime(): CarbonInterface;
-
 }

@@ -1,13 +1,13 @@
 <?php
 
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use SimpleStatsIo\LaravelClient\SimplestatsClientServiceProvider;
 use SimpleStatsIo\LaravelClient\Tests\Models\Payment;
 use SimpleStatsIo\LaravelClient\Tests\Models\PaymentWithCondition;
-use SimpleStatsIo\LaravelClient\Tests\Models\UserWithCondition;
 use SimpleStatsIo\LaravelClient\Tests\Models\User;
+use SimpleStatsIo\LaravelClient\Tests\Models\UserWithCondition;
 
 beforeEach(function () {
     Schema::create('users', function (Blueprint $table) {
@@ -42,7 +42,6 @@ beforeEach(function () {
 /**
  * USER
  */
-
 it('sends an api request if a new user gets created', function () {
     User::create([
         'email' => fake()->safeEmail(),
@@ -81,7 +80,6 @@ it('sends an api request if a new users condition gets fulfilled', function () {
 /**
  * LOGIN
  */
-
 it('sends an api request if an user logs in', function () {
     $user = User::create([
         'email' => fake()->safeEmail(),
@@ -99,7 +97,6 @@ it('sends an api request if an user logs in', function () {
 /**
  * PAYMENT
  */
-
 it('sends an api request if a new payment gets created', function () {
     $user = User::create([
         'email' => fake()->safeEmail(),

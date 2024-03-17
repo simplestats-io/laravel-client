@@ -6,11 +6,11 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePaymentWithCondition;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableUserWithCondition;
 
 class PaymentWithCondition extends Authenticatable implements TrackablePaymentWithCondition
 {
     protected $table = 'payments';
+
     protected $guarded = [];
 
     public function passTrackingCondition(): bool

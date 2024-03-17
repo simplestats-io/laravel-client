@@ -26,7 +26,7 @@ class ApiConnector
 
         if (! $response->successful()) {
             $json = array_merge(['message' => 'unknown'], $response->json() ?? []);
-            throw new ApiRequestFailed('Reason: '. $json['message'], $response->status());
+            throw new ApiRequestFailed('Reason: '.$json['message'], $response->status());
         }
 
         return $response->json();

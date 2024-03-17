@@ -9,6 +9,7 @@ use SimpleStatsIo\LaravelClient\Contracts\TrackableUserWithCondition;
 class UserWithCondition extends Authenticatable implements TrackableUserWithCondition
 {
     protected $table = 'users';
+
     protected $guarded = [];
 
     /**
@@ -22,7 +23,7 @@ class UserWithCondition extends Authenticatable implements TrackableUserWithCond
 
     public function passTrackingCondition(): bool
     {
-        return $this->email_verified_at != NULL;
+        return $this->email_verified_at != null;
     }
 
     public function getTrackingConditionFields(): array

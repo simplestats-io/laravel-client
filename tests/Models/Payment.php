@@ -6,7 +6,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
 
 class Payment extends Authenticatable implements TrackablePayment
 {

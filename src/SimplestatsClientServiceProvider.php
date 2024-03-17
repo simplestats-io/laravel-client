@@ -2,12 +2,9 @@
 
 namespace SimpleStatsIo\LaravelClient;
 
-use App\Models\User;
-use Illuminate\Auth\Events\Login;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
-use SimpleStatsIo\LaravelClient\Commands\SimplestatsClientCommand;
 use SimpleStatsIo\LaravelClient\Listeners\UserLoginListener;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTrackingCodes;
 use SimpleStatsIo\LaravelClient\Observers\PaymentObserver;
@@ -37,7 +34,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
     {
         parent::boot();
 
-        if (!config('simplestats-client.enabled')) {
+        if (! config('simplestats-client.enabled')) {
             return;
         }
 
@@ -62,10 +59,14 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
     private function registerObservers(): void
     {
         $userModel = config('simplestats-client.tracking_types.user.model');
-        if (class_exists($userModel)) $userModel::observe(UserObserver::class);
+        if (class_exists($userModel)) {
+            $userModel::observe(UserObserver::class);
+        }
 
         $paymentModel = config('simplestats-client.tracking_types.payment.model');
-        if (class_exists($paymentModel)) $paymentModel::observe(PaymentObserver::class);
+        if (class_exists($paymentModel)) {
+            $paymentModel::observe(PaymentObserver::class);
+        }
     }
 
     /**
