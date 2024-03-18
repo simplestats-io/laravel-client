@@ -29,8 +29,6 @@ interface TrackablePayment
 
     /**
      * Get the ISO-4217 currency code currency of the payment.
-     *
-     * @return float
      */
     public function getTrackingCurrency(): string;
 }

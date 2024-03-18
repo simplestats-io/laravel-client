@@ -2,6 +2,7 @@
 
 namespace SimpleStatsIo\LaravelClient;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
@@ -11,7 +12,7 @@ class SimplestatsClient
 {
     const TIME_FORMAT = 'Y-m-d';
 
-    public function trackLogin(TrackableUser $user): PendingDispatch
+    public function trackLogin(Model&TrackableUser $user): PendingDispatch
     {
         $payload = [
             'stats_user_id' => $user->getKey(),
@@ -21,7 +22,7 @@ class SimplestatsClient
         return SendApiRequest::dispatch('stats-login', $payload);
     }
 
-    public function trackUser(TrackableUser $user): PendingDispatch
+    public function trackUser(Model&TrackableUser $user): PendingDispatch
     {
         $trackingData = session('simplestats.tracking');
 
@@ -38,7 +39,7 @@ class SimplestatsClient
         return SendApiRequest::dispatch('stats-user', $payload);
     }
 
-    public function trackPayment(TrackablePayment $payment): PendingDispatch
+    public function trackPayment(Model&TrackablePayment $payment): PendingDispatch
     {
         $payload = [
             'id' => $payment->getKey(),
