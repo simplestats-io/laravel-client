@@ -57,11 +57,11 @@ return [
      */
 
     'tracking_codes' => [
-        'source' =>     ['utm_source', 'ref', 'referer', 'referrer'],
-        'medium' =>     ['utm_medium', 'adGroup', 'adGroupId'],
-        'campaign' =>   ['utm_campaign'],
-        'term' =>       ['utm_term'],
-        'content' =>    ['utm_content'],
+        'source' => ['utm_source', 'ref', 'referer', 'referrer'],
+        'medium' => ['utm_medium', 'adGroup', 'adGroupId'],
+        'campaign' => ['utm_campaign'],
+        'term' => ['utm_term'],
+        'content' => ['utm_content'],
     ],
 
     /*
