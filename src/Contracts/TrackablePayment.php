@@ -18,12 +18,12 @@ interface TrackablePayment
     public function getTrackingTime(): CarbonInterface;
 
     /**
-     * Get the gross amount of the payment.
+     * Get the gross amount of the payment in cents ($1 = 100 Cent).
      */
     public function getTrackingGross(): float;
 
     /**
-     * Get the net amount of the payment.
+     * Get the net amount of the payment in cents ($1 = 100 Cent).
      */
     public function getTrackingNet(): float;
 

@@ -85,12 +85,14 @@ return [
             'event' => Login::class,
         ],
 
-        // Make sure this model implements the TrackableUser or TrackableUserWithCondition Contract
+        // Make sure this model implements the TrackableUser or
+        // the TrackableUserWithCondition Contract
         'user' => [
             'model' => User::class,
         ],
 
-        // Make sure this model implements the TrackablePayment or TrackablePaymentWithCondition Contract
+        // Make sure this model implements the TrackablePayment or
+        // the TrackablePaymentWithCondition contract
         'payment' => [
             'model' => null,
         ],
