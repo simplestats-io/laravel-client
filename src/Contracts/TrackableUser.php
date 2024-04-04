@@ -7,7 +7,7 @@ use Carbon\CarbonInterface;
 interface TrackableUser
 {
     /**
-     * Get the time when the user registered.
+     * The time when the user has registered.
      */
     public function getTrackingTime(): CarbonInterface;
 }
