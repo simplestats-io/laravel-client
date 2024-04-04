@@ -4,7 +4,6 @@ namespace SimpleStatsIo\LaravelClient\Services;
 
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
-use SimpleStatsIo\LaravelClient\Enums\HttpMethod;
 use SimpleStatsIo\LaravelClient\Exceptions\ApiRequestFailed;
 
 class ApiConnector
@@ -19,9 +18,9 @@ class ApiConnector
     /**
      * @throws ApiRequestFailed
      */
-    public function request(string $route, array $payload, HttpMethod $method = HttpMethod::POST)
+    public function request(string $route, array $payload, string $method = 'POST')
     {
-        $method = strtolower($method->value);
+        $method = strtolower($method);
         $response = $this->httpClient->$method($route, $payload);
 
         if (! $response->successful()) {

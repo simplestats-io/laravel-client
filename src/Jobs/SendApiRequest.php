@@ -7,7 +7,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use SimpleStatsIo\LaravelClient\Enums\HttpMethod;
 use SimpleStatsIo\LaravelClient\Services\ApiConnector;
 
 class SendApiRequest implements ShouldQueue
@@ -24,9 +23,9 @@ class SendApiRequest implements ShouldQueue
     public array $backoff = [5, 10, 60, 600, 3600, 12 * 3600, 3600 * 24];
 
     public function __construct(
-        private readonly string $route,
-        private readonly array $payload,
-        private readonly HttpMethod $method = HttpMethod::POST
+        private string $route,
+        private array $payload,
+        private string $method = 'POST'
     ) {
         $this->queue = config('simplestats-client.queue');
     }

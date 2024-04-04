@@ -9,7 +9,7 @@ use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class UserObserver
 {
-    public function created(Model&TrackableUser $user)
+    public function created(TrackableUser $user)
     {
         if ($user instanceof TrackableUserWithCondition) {
             if ($user->passTrackingCondition()) {
@@ -20,7 +20,7 @@ class UserObserver
         }
     }
 
-    public function updated(Model&TrackableUser $user)
+    public function updated(TrackableUser $user)
     {
         if ($user instanceof TrackableUserWithCondition) {
             if ($user->wasChanged($user->getTrackingConditionFields()) && $user->passTrackingCondition()) {

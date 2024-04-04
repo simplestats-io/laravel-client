@@ -9,7 +9,7 @@ use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class PaymentObserver
 {
-    public function created(Model&TrackablePayment $payment)
+    public function created(TrackablePayment $payment)
     {
         if ($payment instanceof TrackablePaymentWithCondition) {
             if ($payment->passTrackingCondition()) {
@@ -20,7 +20,7 @@ class PaymentObserver
         }
     }
 
-    public function updated(Model&TrackablePayment $payment)
+    public function updated(TrackablePayment $payment)
     {
         if ($payment instanceof TrackablePaymentWithCondition) {
             if ($payment->wasChanged($payment->getTrackingConditionFields()) && $payment->passTrackingCondition()) {
