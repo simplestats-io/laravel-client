@@ -3,6 +3,7 @@
 namespace SimpleStatsIo\LaravelClient\Middleware;
 
 use Closure;
+use Illuminate\Support\Str;
 
 class CheckTrackingCodes
 {
@@ -37,7 +38,7 @@ class CheckTrackingCodes
 
     private function getInitialReferer()
     {
-        if (isset($_SERVER['HTTP_REFERER']) && ! str($_SERVER['HTTP_REFERER'])->contains(config('app.url'))) {
+        if (isset($_SERVER['HTTP_REFERER']) && ! Str::of($_SERVER['HTTP_REFERER'])->contains(config('app.url'))) {
             return parse_url($_SERVER['HTTP_REFERER'])['host'];
         }
 

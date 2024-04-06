@@ -9,6 +9,10 @@ use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class UserObserver
 {
+    /**
+     * @param  TrackableUser&Model  $user
+     * @return void
+     */
     public function created(TrackableUser $user)
     {
         if ($user instanceof TrackableUserWithCondition) {
@@ -20,6 +24,10 @@ class UserObserver
         }
     }
 
+    /**
+     * @param  TrackableUser&Model  $user
+     * @return void
+     */
     public function updated(TrackableUser $user)
     {
         if ($user instanceof TrackableUserWithCondition) {

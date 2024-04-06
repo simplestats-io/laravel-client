@@ -37,6 +37,8 @@ beforeEach(function () {
     config(['simplestats-client.tracking_types.payment.model' => Payment::class]);
     // boot again to update the observers...
     app()->getProvider(SimplestatsClientServiceProvider::class)->boot();
+
+    $this->faker = \Faker\Factory::create();
 });
 
 /**
@@ -44,7 +46,7 @@ beforeEach(function () {
  */
 it('sends an api request if a new user gets created', function () {
     User::create([
-        'email' => fake()->safeEmail(),
+        'email' => $this->faker->safeEmail(),
         'password' => bcrypt('password'),
     ]);
 
@@ -60,7 +62,7 @@ it('sends an api request if a new users condition gets fulfilled', function () {
     app()->getProvider(SimplestatsClientServiceProvider::class)->boot();
 
     $conditionalUser = UserWithCondition::create([
-        'email' => fake()->safeEmail(),
+        'email' => $this->faker->safeEmail(),
         'password' => bcrypt('password'),
     ]);
 
@@ -82,7 +84,7 @@ it('sends an api request if a new users condition gets fulfilled', function () {
  */
 it('sends an api request if an user logs in', function () {
     $user = User::create([
-        'email' => fake()->safeEmail(),
+        'email' => $this->faker->safeEmail(),
         'password' => bcrypt('password'),
     ]);
 
@@ -99,7 +101,7 @@ it('sends an api request if an user logs in', function () {
  */
 it('sends an api request if a new payment gets created', function () {
     $user = User::create([
-        'email' => fake()->safeEmail(),
+        'email' => $this->faker->safeEmail(),
         'password' => bcrypt('password'),
     ]);
 
@@ -119,7 +121,7 @@ it('sends an api request if a new payments condition gets fulfilled', function (
     app()->getProvider(SimplestatsClientServiceProvider::class)->boot();
 
     $user = User::create([
-        'email' => fake()->safeEmail(),
+        'email' => $this->faker->safeEmail(),
         'password' => bcrypt('password'),
     ]);
 

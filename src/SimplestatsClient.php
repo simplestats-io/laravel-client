@@ -12,6 +12,10 @@ class SimplestatsClient
 {
     const TIME_FORMAT = 'Y-m-d';
 
+    /**
+     * @param  TrackableUser&Model  $user
+     * @return PendingDispatch
+     */
     public function trackLogin(TrackableUser $user): PendingDispatch
     {
         $payload = [
@@ -22,6 +26,10 @@ class SimplestatsClient
         return SendApiRequest::dispatch('stats-login', $payload);
     }
 
+    /**
+     * @param  TrackableUser&Model  $user
+     * @return PendingDispatch
+     */
     public function trackUser(TrackableUser $user): PendingDispatch
     {
         $trackingData = session('simplestats.tracking');
@@ -39,6 +47,10 @@ class SimplestatsClient
         return SendApiRequest::dispatch('stats-user', $payload);
     }
 
+    /**
+     * @param  TrackablePayment&Model  $payment
+     * @return PendingDispatch
+     */
     public function trackPayment(TrackablePayment $payment): PendingDispatch
     {
         $payload = [

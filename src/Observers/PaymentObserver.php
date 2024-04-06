@@ -9,6 +9,10 @@ use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class PaymentObserver
 {
+    /**
+     * @param  TrackablePayment&Model  $payment
+     * @return void
+     */
     public function created(TrackablePayment $payment)
     {
         if ($payment instanceof TrackablePaymentWithCondition) {
@@ -20,6 +24,10 @@ class PaymentObserver
         }
     }
 
+    /**
+     * @param  TrackablePayment&Model  $payment
+     * @return void
+     */
     public function updated(TrackablePayment $payment)
     {
         if ($payment instanceof TrackablePaymentWithCondition) {

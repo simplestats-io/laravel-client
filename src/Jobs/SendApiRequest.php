@@ -13,6 +13,10 @@ class SendApiRequest implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private string $route;
+    private array $payload;
+    private string $method;
+
     /**
      * Let's retry 15 times (if the stats tool is temporary not reachable or has a heavy outage).
      * First, we try more often, and after seven times, we only try every day (the last item in the backoff array)
@@ -22,11 +26,11 @@ class SendApiRequest implements ShouldQueue
 
     public array $backoff = [5, 10, 60, 600, 3600, 12 * 3600, 3600 * 24];
 
-    public function __construct(
-        private string $route,
-        private array $payload,
-        private string $method = 'POST'
-    ) {
+    public function __construct(string $route, array $payload, string $method = 'POST')
+    {
+        $this->route = $route;
+        $this->payload = $payload;
+        $this->method = $method;
         $this->queue = config('simplestats-client.queue');
     }
 
