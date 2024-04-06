@@ -5,7 +5,7 @@ namespace SimpleStatsIo\LaravelClient\Contracts;
 interface TrackableWithCondition
 {
     /**
-     * The condition that should be met in order to track the model.
+     * The condition that should be fulfilled in order to track the model.
      */
     public function passTrackingCondition(): bool;
 
