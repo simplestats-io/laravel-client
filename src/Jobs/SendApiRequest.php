@@ -14,7 +14,9 @@ class SendApiRequest implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private string $route;
+
     private array $payload;
+
     private string $method;
 
     /**
