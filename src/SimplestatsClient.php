@@ -14,7 +14,6 @@ class SimplestatsClient
 
     /**
      * @param  TrackableUser&Model  $user
-     * @return PendingDispatch
      */
     public function trackLogin(TrackableUser $user): PendingDispatch
     {
@@ -28,7 +27,6 @@ class SimplestatsClient
 
     /**
      * @param  TrackableUser&Model  $user
-     * @return PendingDispatch
      */
     public function trackUser(TrackableUser $user): PendingDispatch
     {
@@ -49,7 +47,6 @@ class SimplestatsClient
 
     /**
      * @param  TrackablePayment&Model  $payment
-     * @return PendingDispatch
      */
     public function trackPayment(TrackablePayment $payment): PendingDispatch
     {
