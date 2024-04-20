@@ -31,7 +31,7 @@ class UserObserver
     public function updated(TrackableUser $user)
     {
         if ($user instanceof TrackableUserWithCondition) {
-            if ($user->wasChanged($user->getTrackingConditionFields()) && $user->passTrackingCondition()) {
+            if ($user->wasChanged($user->watchTrackingFields()) && $user->passTrackingCondition()) {
                 SimplestatsClient::trackUser($user);
             }
         }

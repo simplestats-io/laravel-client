@@ -10,7 +10,7 @@ interface TrackableWithCondition
     public function passTrackingCondition(): bool;
 
     /**
-     * The field(s) we should listen for changes to recheck the condition.
+     * The field(s) we should watch for changes to recheck the condition.
      */
-    public function getTrackingConditionFields(): array;
+    public function watchTrackingFields(): array;
 }

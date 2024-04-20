@@ -31,7 +31,7 @@ class PaymentObserver
     public function updated(TrackablePayment $payment)
     {
         if ($payment instanceof TrackablePaymentWithCondition) {
-            if ($payment->wasChanged($payment->getTrackingConditionFields()) && $payment->passTrackingCondition()) {
+            if ($payment->wasChanged($payment->watchTrackingFields()) && $payment->passTrackingCondition()) {
                 SimplestatsClient::trackPayment($payment);
             }
         }

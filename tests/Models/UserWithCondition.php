@@ -26,7 +26,7 @@ class UserWithCondition extends Authenticatable implements TrackableUserWithCond
         return $this->email_verified_at != null;
     }
 
-    public function getTrackingConditionFields(): array
+    public function watchTrackingFields(): array
     {
         return ['email_verified_at'];
     }

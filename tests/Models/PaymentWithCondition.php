@@ -18,7 +18,7 @@ class PaymentWithCondition extends Authenticatable implements TrackablePaymentWi
         return $this->status == 'completed';
     }
 
-    public function getTrackingConditionFields(): array
+    public function watchTrackingFields(): array
     {
         return ['status'];
     }
