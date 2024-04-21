@@ -1,4 +1,4 @@
-# Laravel Client for SimpleStats.io!
+# Laravel Client for SimpleStats.io
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/simplestats-io/laravel-client.svg?style=flat-square)](https://packagist.org/packages/simplestats-io/laravel-client)
 [![Tests](https://github.com/simplestats-io/laravel-client/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/simplestats-io/laravel-client/actions/workflows/run-tests.yml)
@@ -7,6 +7,10 @@
 <!--[![Total Downloads](https://img.shields.io/packagist/dt/simplestats-io/laravel-client.svg?style=flat-square)](https://packagist.org/packages/simplestats-io/laravel-client)-->
 
 This is the official Laravel client to send tracking data to [https://simplestats.io](https://simplestats.io)
+
+## Introduction
+
+_**SimpleStats**_ is a streamlined statistics tool tailored for **Laravel** applications, transcending mere counts of visits, views, and page impressions. It offers **precise insights** into user origins and behaviors. With default tracking and filtering via [UTM](https://en.wikipedia.org/wiki/UTM_parameters) codes, you gain detailed analysis of **marketing** campaigns, identifying which efforts drive **revenue**. Effortlessly evaluate campaign **ROI**, discover cost-effective user acquisition channels, and pinpoint the most effective performance channels. _SimpleStats_ ensures full **GDPR compliance** and a minimalistic and straightforward installation process.
 
 ## Installation
 
@@ -127,7 +131,7 @@ return [
 
 ## Documentation
 
-Find detaild documentation here: [Official SimpleStats.io Documentation](https://simplestats.io/docs)
+Check out the full documentation here: [Official SimpleStats.io Documentation](https://simplestats.io/docs)
 
 ## Testing
 
