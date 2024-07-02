@@ -19,14 +19,11 @@ class CheckTrackingCodes
             return [$key => null];
         });
 
-        $sourceKey = $collectedTrackingData->keys()->first();
-
         // remove empty/null elements...
         $filtered = $collectedTrackingData->filter();
 
-        // fallback source will be the referer if it's available...
-        if (! $filtered->has($sourceKey) && $referer = $this->getInitialReferer()) {
-            $filtered->put($sourceKey, $referer);
+        if ($referer = $this->getInitialReferer()) {
+            $filtered->put('referer', $referer);
         }
 
         if ($filtered->isNotEmpty()) {

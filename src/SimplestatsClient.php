@@ -20,6 +20,8 @@ class SimplestatsClient
         $payload = [
             'stats_user_id' => $user->getKey(),
             'time' => now()->format(self::TIME_FORMAT),
+            'ip' => request()->ip() ?? null,
+            'user_agent' => ($userAgent = request()->userAgent()) ? urlencode($userAgent) : null,
         ];
 
         return SendApiRequest::dispatch('stats-login', $payload);
@@ -34,6 +36,9 @@ class SimplestatsClient
 
         $payload = [
             'id' => $user->getKey(),
+            'ip' => request()->ip() ?? null,
+            'user_agent' => ($userAgent = request()->userAgent()) ? urlencode($userAgent) : null,
+            'track_referer' => $trackingData['referer'] ?? null,
             'track_source' => $trackingData['source'] ?? null,
             'track_medium' => $trackingData['medium'] ?? null,
             'track_campaign' => $trackingData['campaign'] ?? null,
