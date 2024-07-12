@@ -44,6 +44,7 @@ class SimplestatsClient
             'track_campaign' => $trackingData['campaign'] ?? null,
             'track_term' => $trackingData['term'] ?? null,
             'track_content' => $trackingData['content'] ?? null,
+            'page_entry' => $trackingData['page'] ?? null,
             'time' => $user->getTrackingTime()->format(self::TIME_FORMAT),
         ];
 

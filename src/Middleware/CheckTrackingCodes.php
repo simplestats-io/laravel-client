@@ -9,6 +9,10 @@ class CheckTrackingCodes
 {
     public function handle($request, Closure $next)
     {
+        if (! empty($request->session()->get('simplestats.tracking'))) {
+            return $next($request);
+        }
+
         $collectedTrackingData = collect(config('simplestats-client.tracking_codes'))->mapWithKeys(function ($params, $key) use ($request) {
             foreach ($params as $param) {
                 if ($value = $request->input($param)) {
@@ -25,6 +29,8 @@ class CheckTrackingCodes
         if ($referer = $this->getInitialReferer()) {
             $filtered->put('referer', $referer);
         }
+
+        $filtered->put('page', $request->getPathInfo());
 
         if ($filtered->isNotEmpty()) {
             $request->session()->put(['simplestats.tracking' => $filtered]);

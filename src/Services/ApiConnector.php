@@ -12,7 +12,7 @@ class ApiConnector
 
     public function __construct(string $apiUrl, string $apiToken)
     {
-        $this->httpClient = Http::baseUrl($apiUrl)->withToken($apiToken)->acceptJson();
+        $this->httpClient = Http::baseUrl($apiUrl)->withToken($apiToken)->timeout(5)->acceptJson();
     }
 
     /**
