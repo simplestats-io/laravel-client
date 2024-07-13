@@ -6,7 +6,7 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use SimpleStatsIo\LaravelClient\Listeners\UserLoginListener;
-use SimpleStatsIo\LaravelClient\Middleware\CheckTrackingCodes;
+use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use SimpleStatsIo\LaravelClient\Observers\PaymentObserver;
 use SimpleStatsIo\LaravelClient\Observers\UserObserver;
 use SimpleStatsIo\LaravelClient\Services\ApiConnector;
@@ -75,6 +75,6 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
     private function registerMiddlewares(): void
     {
         $kernel = $this->app->make(Kernel::class);
-        $kernel->appendMiddlewareToGroup('web', CheckTrackingCodes::class);
+        $kernel->appendMiddlewareToGroup('web', CheckTracking::class);
     }
 }
