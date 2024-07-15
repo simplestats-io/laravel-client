@@ -2,6 +2,12 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.1 - 2024-07-15
+
+### What's changed
+
+* fixed tracking session return type bug
+
 ## v2.0.0 - 2024-07-15
 
 ### What's changed
