@@ -4,6 +4,7 @@ namespace SimpleStatsIo\LaravelClient;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\PendingDispatch;
+use Illuminate\Support\Collection;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
@@ -90,8 +91,8 @@ class SimplestatsClient
         return SendApiRequest::dispatch('stats-payment', $payload);
     }
 
-    private function getSessionTracking(): array
+    private function getSessionTracking(): Collection
     {
-        return session('simplestats.tracking') ?? [];
+        return session('simplestats.tracking') ?? collect();
     }
 }
