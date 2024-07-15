@@ -2,6 +2,16 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.0 - 2024-07-15
+
+### What's changed
+
+* Visitors tracking
+* Referrer tracking
+* Entry pages tracking
+* Locations tracking (Countries, Regions and Cities)
+* Device tracking (Browser, OS and Size)
+
 ## v1.0.3 - 2024-04-20
 
 ### What's changed
