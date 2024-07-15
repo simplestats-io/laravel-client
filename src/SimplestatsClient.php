@@ -14,12 +14,12 @@ class SimplestatsClient
 
     public function trackVisitor(): PendingDispatch
     {
-        $trackingData = session('simplestats.tracking');
+        $trackingData = $this->getSessionTracking();
 
         $payload = [
             'ip' => $trackingData['ip'] ?? null,
-            'user_agent' => ($userAgent = $trackingData['user_agent']) ? urlencode($userAgent) : null,
-            'track_referer' => ($referer = $trackingData['referer']) ? $referer : null,
+            'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
+            'track_referer' => $trackingData['referer'] ?? null,
             'track_source' => $trackingData['source'] ?? null,
             'track_medium' => $trackingData['medium'] ?? null,
             'track_campaign' => $trackingData['campaign'] ?? null,
@@ -37,13 +37,13 @@ class SimplestatsClient
      */
     public function trackLogin(TrackableUser $user): PendingDispatch
     {
-        $trackingData = session('simplestats.tracking');
+        $trackingData = $this->getSessionTracking();
 
         $payload = [
             'stats_user_id' => $user->getKey(),
             'time' => now()->format(self::TIME_FORMAT),
             'ip' => $trackingData['ip'] ?? null,
-            'user_agent' => ($userAgent = $trackingData['user_agent']) ? urlencode($userAgent) : null,
+            'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
         ];
 
         return SendApiRequest::dispatch('stats-login', $payload);
@@ -54,13 +54,13 @@ class SimplestatsClient
      */
     public function trackUser(TrackableUser $user): PendingDispatch
     {
-        $trackingData = session('simplestats.tracking');
+        $trackingData = $this->getSessionTracking();
 
         $payload = [
             'id' => $user->getKey(),
             'ip' => $trackingData['ip'] ?? null,
-            'user_agent' => ($userAgent = $trackingData['user_agent']) ? urlencode($userAgent) : null,
-            'track_referer' => ($referer = $trackingData['referer']) ? $referer : null,
+            'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
+            'track_referer' => $trackingData['referer'] ?? null,
             'track_source' => $trackingData['source'] ?? null,
             'track_medium' => $trackingData['medium'] ?? null,
             'track_campaign' => $trackingData['campaign'] ?? null,
@@ -88,5 +88,10 @@ class SimplestatsClient
         ];
 
         return SendApiRequest::dispatch('stats-payment', $payload);
+    }
+
+    private function getSessionTracking(): array
+    {
+        return session('simplestats.tracking') ?? [];
     }
 }
