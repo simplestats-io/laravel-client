@@ -2,6 +2,7 @@
 
 namespace SimpleStatsIo\LaravelClient;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Collection;
@@ -36,7 +37,7 @@ class SimplestatsClient
     /**
      * @param  TrackableUser&Model  $user
      */
-    public function trackLogin(TrackableUser $user): PendingDispatch
+    public function trackLogin(TrackableUser $user, ?CarbonImmutable $delay = null): PendingDispatch
     {
         $trackingData = $this->getSessionTracking();
 
@@ -47,7 +48,11 @@ class SimplestatsClient
             'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
         ];
 
-        return SendApiRequest::dispatch('stats-login', $payload);
+        if (empty($delay)) {
+            $delay = now();
+        }
+
+        return SendApiRequest::dispatch('stats-login', $payload)->delay($delay);
     }
 
     /**
