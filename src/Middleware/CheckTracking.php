@@ -44,7 +44,10 @@ class CheckTracking
     private function getInitialReferer(): string
     {
         if (isset($_SERVER['HTTP_REFERER']) && ! Str::of($_SERVER['HTTP_REFERER'])->contains(config('app.url'))) {
-            return parse_url($_SERVER['HTTP_REFERER'])['host'];
+
+            return parse_url($_SERVER['HTTP_REFERER'])['host']
+                ?? parse_url('https://' . $_SERVER['HTTP_REFERER'])['host']
+                ?? '';
         }
 
         return '';
