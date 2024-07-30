@@ -36,4 +36,9 @@
     <logging>
         <junit outputFile="build/report.junit.xml"/>
     </logging>
+    <php>
+        <env name="APP_KEY" value="base64:QiaqxkKwNEVHnQI2UDw5IF6ztNMrSSCsRG9CwG7kV+8="/>
+        <env name="SIMPLESTATS_API_URL" value="https://simplestats.test/api/v1/"/>
+        <env name="SIMPLESTATS_API_TOKEN" value="fake-token"/>
+    </php>
 </phpunit>
