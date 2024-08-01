@@ -2,6 +2,12 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.3 - 2024-07-30
+
+### What's changed
+
+* Handle referer without https by @tomas-doudera
+
 ## v2.0.2 - 2024-07-25
 
 ### What's changed
