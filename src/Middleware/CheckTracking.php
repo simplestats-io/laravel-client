@@ -11,7 +11,7 @@ class CheckTracking
 {
     public function handle(Request $request, Closure $next)
     {
-        if (! empty($request->session()->get('simplestats.tracking')) && ! $request->isMethod('get')) {
+        if (! empty($request->session()->get('simplestats.tracking')) || ! $request->isMethod('get')) {
             return $next($request);
         }
 
