@@ -2,6 +2,12 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.4 - 2024-08-01
+
+### What's changed
+
+* Apply tracking session only for get requests
+
 ## v2.0.3 - 2024-07-30
 
 ### What's changed
