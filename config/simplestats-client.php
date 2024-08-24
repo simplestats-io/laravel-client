@@ -13,9 +13,17 @@ return [
      | SimpleStats is enabled by default. Be aware that if you turn disable it,
      | you may lose important tracking data. In most cases, leave it enabled!
      |
+     | You can provide an array of URI's that must be ignored (eg. 'api/*')
      */
 
     'enabled' => env('SIMPLESTATS_ENABLED', true),
+
+    'except' => [
+        'telescope*',
+        'horizon*',
+        'admin*',
+        'api*',
+    ],
 
     /*
      |--------------------------------------------------------------------------

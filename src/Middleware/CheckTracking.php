@@ -11,7 +11,7 @@ class CheckTracking
 {
     public function handle(Request $request, Closure $next)
     {
-        if (! empty($request->session()->get('simplestats.tracking')) || ! $request->isMethod('get')) {
+        if (! $this->doTracking($request)) {
             return $next($request);
         }
 
@@ -41,7 +41,7 @@ class CheckTracking
         return $next($request);
     }
 
-    private function getInitialReferer(): string
+    protected function getInitialReferer(): string
     {
         if (isset($_SERVER['HTTP_REFERER']) && ! Str::of($_SERVER['HTTP_REFERER'])->contains(config('app.url'))) {
 
@@ -51,5 +51,27 @@ class CheckTracking
         }
 
         return '';
+    }
+
+    protected function doTracking(Request $request): bool
+    {
+        return empty($request->session()->get('simplestats.tracking'))
+            && $request->isMethod('get')
+            && ! $this->inExceptArray($request);
+    }
+
+    protected function inExceptArray(Request $request): bool
+    {
+        foreach (config('simplestats-client.except') as $except) {
+            if ($except !== '/') {
+                $except = trim($except, '/');
+            }
+
+            if ($request->is($except)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
