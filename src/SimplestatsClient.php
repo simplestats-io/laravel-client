@@ -2,7 +2,7 @@
 
 namespace SimpleStatsIo\LaravelClient;
 
-use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Collection;
@@ -28,7 +28,7 @@ class SimplestatsClient
             'track_term' => $trackingData['term'] ?? null,
             'track_content' => $trackingData['content'] ?? null,
             'page_entry' => $trackingData['page'] ?? null,
-            'time' => now()->format(self::TIME_FORMAT),
+            'time' => $this->getTime(now()),
         ];
 
         return SendApiRequest::dispatch('stats-visitor', $payload);
@@ -37,28 +37,24 @@ class SimplestatsClient
     /**
      * @param  TrackableUser&Model  $user
      */
-    public function trackLogin(TrackableUser $user, ?CarbonImmutable $delay = null): PendingDispatch
+    public function trackLogin(TrackableUser $user): PendingDispatch
     {
         $trackingData = $this->getSessionTracking();
 
         $payload = [
             'stats_user_id' => $user->getKey(),
-            'time' => now()->format(self::TIME_FORMAT),
             'ip' => $trackingData['ip'] ?? null,
             'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
+            'time' => $this->getTime(now()),
         ];
 
-        if (empty($delay)) {
-            $delay = now();
-        }
-
-        return SendApiRequest::dispatch('stats-login', $payload)->delay($delay);
+        return SendApiRequest::dispatch('stats-login', $payload);
     }
 
     /**
      * @param  TrackableUser&Model  $user
      */
-    public function trackUser(TrackableUser $user): PendingDispatch
+    public function trackUser(TrackableUser $user, bool $addLogin = false): PendingDispatch
     {
         $trackingData = $this->getSessionTracking();
 
@@ -73,7 +69,8 @@ class SimplestatsClient
             'track_term' => $trackingData['term'] ?? null,
             'track_content' => $trackingData['content'] ?? null,
             'page_entry' => $trackingData['page'] ?? null,
-            'time' => $user->getTrackingTime()->format(self::TIME_FORMAT),
+            'add_login' => $addLogin,
+            'time' => $this->getTime($user->getTrackingTime()),
         ];
 
         return SendApiRequest::dispatch('stats-user', $payload);
@@ -90,14 +87,28 @@ class SimplestatsClient
             'gross' => $payment->getTrackingGross(),
             'net' => $payment->getTrackingNet(),
             'currency' => $payment->getTrackingCurrency(),
-            'time' => $payment->getTrackingTime()->format(self::TIME_FORMAT),
+            'time' => $this->getTime($payment->getTrackingTime()),
         ];
 
         return SendApiRequest::dispatch('stats-payment', $payload);
     }
 
+    /**
+     * @return Collection
+     */
     private function getSessionTracking(): Collection
     {
         return session('simplestats.tracking') ?? collect();
+    }
+
+    /**
+     * We want all dates in UTC
+     *
+     * @param  CarbonInterface  $time
+     * @return string
+     */
+    private function getTime(CarbonInterface $time): string
+    {
+        return $time->tz('UTC')->format(self::TIME_FORMAT);
     }
 }
