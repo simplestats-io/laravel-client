@@ -2,6 +2,13 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.5 - 2024-08-26
+
+### What's changed
+
+* UTC timestamps
+* Added expect option to exclude certain URIs
+
 ## v2.0.4 - 2024-08-01
 
 ### What's changed
