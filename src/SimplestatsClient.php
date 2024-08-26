@@ -93,9 +93,6 @@ class SimplestatsClient
         return SendApiRequest::dispatch('stats-payment', $payload);
     }
 
-    /**
-     * @return Collection
-     */
     private function getSessionTracking(): Collection
     {
         return session('simplestats.tracking') ?? collect();
@@ -103,9 +100,6 @@ class SimplestatsClient
 
     /**
      * We want all dates in UTC
-     *
-     * @param  CarbonInterface  $time
-     * @return string
      */
     private function getTime(CarbonInterface $time): string
     {
