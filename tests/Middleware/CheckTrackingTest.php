@@ -17,7 +17,7 @@ it('handles referer', function ($referer, $expected) {
         ->assertOk();
 })->with([
     'handles https://fake.test' => ['https://fake.test', 'fake.test'],
-    'handles https://www.fake.test' => ['https://www.fake.test', 'www.fake.test'],
-    'handles www.fake.test' => ['www.fake.test', 'www.fake.test'],
+    'handles https://www.fake.test' => ['https://www.fake.test', 'fake.test'],
+    'handles www.fake.test' => ['www.fake.test', 'fake.test'],
     'handles fake.test' => ['fake.test', 'fake.test'],
 ]);
