@@ -29,7 +29,7 @@ class CheckTracking
         // remove empty/null items...
         $cleanedTrackingData = $collectedTrackingData->filter();
 
-        $cleanedTrackingData->put('referer', $this->getInitialReferer());
+        $cleanedTrackingData->put('referer', $this->getReferer());
         $cleanedTrackingData->put('user_agent', $request->userAgent());
         $cleanedTrackingData->put('page', $request->getPathInfo());
         $cleanedTrackingData->put('ip', $request->ip());
@@ -41,13 +41,20 @@ class CheckTracking
         return $next($request);
     }
 
-    protected function getInitialReferer(): string
+    protected function getReferer(): string
     {
-        if (isset($_SERVER['HTTP_REFERER']) && ! Str::of($_SERVER['HTTP_REFERER'])->contains(config('app.url'))) {
+        if (empty($_SERVER['HTTP_REFERER'])) {
+            return '';
+        }
 
-            return parse_url($_SERVER['HTTP_REFERER'])['host']
-                ?? parse_url('https://'.$_SERVER['HTTP_REFERER'])['host']
-                ?? '';
+        // referer always without www and make sure referes like http://foo.de, https://foo.de, foo.de and www.foo.de are working
+        $referer = Str::replaceFirst('www.', '', parse_url($_SERVER['HTTP_REFERER'])['host']
+            ?? parse_url('https://'.$_SERVER['HTTP_REFERER'])['host']
+            ?? '');
+
+        // do not track the app url as a own referer, if that happens...
+        if (! empty($referer) && ! Str::of(config('app.url'))->contains($referer)) {
+            return $referer;
         }
 
         return '';

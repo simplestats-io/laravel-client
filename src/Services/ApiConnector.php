@@ -8,7 +8,7 @@ use SimpleStatsIo\LaravelClient\Exceptions\ApiRequestFailed;
 
 class ApiConnector
 {
-    private PendingRequest $httpClient;
+    protected PendingRequest $httpClient;
 
     public function __construct(string $apiUrl, string $apiToken)
     {

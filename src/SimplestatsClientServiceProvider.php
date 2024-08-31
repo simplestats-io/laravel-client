@@ -44,19 +44,19 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
         $this->registerMiddlewares();
     }
 
-    private function registerApps(): void
+    protected function registerApps(): void
     {
         $this->app->singleton(ApiConnector::class, function ($app) {
             return new ApiConnector(config('simplestats-client.api_url'), config('simplestats-client.api_token'));
         });
     }
 
-    private function registerEvents(): void
+    protected function registerEvents(): void
     {
         Event::listen(config('simplestats-client.tracking_types.login.event'), [UserLoginListener::class, 'handle']);
     }
 
-    private function registerObservers(): void
+    protected function registerObservers(): void
     {
         $userModel = config('simplestats-client.tracking_types.user.model');
         if ($userModel && class_exists($userModel)) {
@@ -72,7 +72,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
     /**
      * @throws BindingResolutionException
      */
-    private function registerMiddlewares(): void
+    protected function registerMiddlewares(): void
     {
         $kernel = $this->app->make(Kernel::class);
         $kernel->appendMiddlewareToGroup('web', CheckTracking::class);

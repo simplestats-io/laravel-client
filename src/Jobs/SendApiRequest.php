@@ -13,11 +13,11 @@ class SendApiRequest implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private string $route;
+    protected string $route;
 
-    private array $payload;
+    protected array $payload;
 
-    private string $method;
+    protected string $method;
 
     /**
      * Let's retry 15 times (if the stats tool is temporary not reachable or has a heavy outage).
