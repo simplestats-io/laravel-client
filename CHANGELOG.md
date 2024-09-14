@@ -2,6 +2,12 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.7 - 2024-09-14
+
+### What's changed
+
+* added timezone to time parameter
+
 ## v2.0.6 - 2024-08-31
 
 ### What's changed
