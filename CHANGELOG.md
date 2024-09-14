@@ -2,6 +2,13 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.6 - 2024-08-31
+
+### What's changed
+
+* referer without www
+* avoid own app url as referer
+
 ## v2.0.5 - 2024-08-26
 
 ### What's changed
