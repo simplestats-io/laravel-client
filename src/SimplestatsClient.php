@@ -12,7 +12,7 @@ use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 
 class SimplestatsClient
 {
-    const TIME_FORMAT = 'Y-m-d H:i:s P';
+    const TIME_FORMAT = 'Y-m-d H:i:s';
 
     public function trackVisitor(): PendingDispatch
     {
