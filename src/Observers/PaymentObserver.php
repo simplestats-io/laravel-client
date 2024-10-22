@@ -13,6 +13,17 @@ class PaymentObserver
      * @param  TrackablePayment&Model  $payment
      * @return void
      */
+    public function creating(TrackablePayment $payment)
+    {
+        if ($payment->isFillable('visitor_hash')) {
+            $payment->visitor_hash = session('simplestats.visitor_hash');
+        }
+    }
+
+    /**
+     * @param  TrackablePayment&Model  $payment
+     * @return void
+     */
     public function created(TrackablePayment $payment)
     {
         if ($payment instanceof TrackablePaymentWithCondition) {

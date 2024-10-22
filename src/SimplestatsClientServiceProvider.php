@@ -24,7 +24,8 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
          */
         $package
             ->name('simplestats-client')
-            ->hasConfigFile();
+            ->hasConfigFile()
+            ->hasMigration('add_visitor_hash_to_payments_table');
     }
 
     /**
@@ -38,13 +39,13 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
             return;
         }
 
-        $this->registerApps();
+        $this->registerServices();
         $this->registerEvents();
         $this->registerObservers();
         $this->registerMiddlewares();
     }
 
-    protected function registerApps(): void
+    protected function registerServices(): void
     {
         $this->app->singleton(ApiConnector::class, function ($app) {
             return new ApiConnector(config('simplestats-client.api_url'), config('simplestats-client.api_token'));

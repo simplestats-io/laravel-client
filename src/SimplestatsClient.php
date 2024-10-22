@@ -2,6 +2,7 @@
 
 namespace SimpleStatsIo\LaravelClient;
 
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\PendingDispatch;
@@ -18,9 +19,18 @@ class SimplestatsClient
     {
         $trackingData = $this->getSessionTracking();
 
+        $time = $this->getTime(now());
+        $ip = $trackingData['ip'] ?? null;
+        $userAgent = (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null;
+        $visitorHash = $this->createVisitorHash($time, $ip, $userAgent);
+
+        if (!session()->has('simplestats.visitor_hash')) {
+            session()->put('simplestats.visitor_hash', $visitorHash);
+        }
+
         $payload = [
-            'ip' => $trackingData['ip'] ?? null,
-            'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
+            'ip' => $ip,
+            'user_agent' => $userAgent,
             'track_referer' => $trackingData['referer'] ?? null,
             'track_source' => $trackingData['source'] ?? null,
             'track_medium' => $trackingData['medium'] ?? null,
@@ -28,7 +38,8 @@ class SimplestatsClient
             'track_term' => $trackingData['term'] ?? null,
             'track_content' => $trackingData['content'] ?? null,
             'page_entry' => $trackingData['page'] ?? null,
-            'time' => $this->getTime(now()),
+            'visitor_hash' => $visitorHash,
+            'time' => $time,
         ];
 
         return SendApiRequest::dispatch('stats-visitor', $payload);
@@ -83,12 +94,17 @@ class SimplestatsClient
     {
         $payload = [
             'id' => $payment->getKey(),
-            'stats_user_id' => $payment->getTrackingUser()->getKey(),
             'gross' => $payment->getTrackingGross(),
             'net' => $payment->getTrackingNet(),
             'currency' => $payment->getTrackingCurrency(),
             'time' => $this->getTime($payment->getTrackingTime()),
         ];
+
+        if ($userId = $payment->getTrackingUser()?->getKey()) {
+            $payload['stats_user_id'] = $userId;
+        } else {
+//            'visitor_hash' => session('simplestats.visitorHash'),
+        }
 
         return SendApiRequest::dispatch('stats-payment', $payload);
     }
@@ -99,10 +115,25 @@ class SimplestatsClient
     }
 
     /**
-     * We want all dates in UTC
+     * @param  CarbonInterface  $time
+     * @return string
      */
     protected function getTime(CarbonInterface $time): string
     {
         return $time->tz('UTC')->format(self::TIME_FORMAT);
+    }
+
+    /**
+     * @param  string|null  $time
+     * @param  string|null  $ip
+     * @param  string|null  $userAgent
+     * @return string
+     */
+    public function createVisitorHash(?string $time, ?string $ip, ?string $userAgent): string
+    {
+        $time = Carbon::parse($time);
+        $visitorHash = hash('sha256', $ip.$userAgent.$time?->format('Y-m-d').config('app.key'));
+
+        return substr($visitorHash, 0, 32);
     }
 }
