@@ -3,10 +3,10 @@
 namespace SimpleStatsIo\LaravelClient\Middleware;
 
 use Closure;
+use hisorange\BrowserDetect\Facade as Browser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
-use hisorange\BrowserDetect\Facade as Browser;
 
 class CheckTracking
 {
