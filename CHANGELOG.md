@@ -2,6 +2,12 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.9 - 2024-10-23
+
+### What's changed
+
+* client side bot detection
+
 ## v2.0.7 - 2024-09-14
 
 ### What's changed
