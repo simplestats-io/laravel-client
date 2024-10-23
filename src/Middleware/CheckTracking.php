@@ -66,7 +66,7 @@ class CheckTracking
         return empty($request->session()->get('simplestats.tracking'))
             && $request->isMethod('get')
             && ! $this->inExceptArray($request)
-            && ! (new Parser())->parse(urldecode($request->user_agent))->isBot();
+            && ! (new Parser)->parse(urldecode($request->user_agent))->isBot();
     }
 
     protected function inExceptArray(Request $request): bool
