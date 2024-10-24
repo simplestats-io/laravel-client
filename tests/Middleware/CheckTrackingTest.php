@@ -21,3 +21,12 @@ it('handles referer', function ($referer, $expected) {
     'handles www.fake.test' => ['www.fake.test', 'fake.test'],
     'handles fake.test' => ['fake.test', 'fake.test'],
 ]);
+
+it('does not track bots', function () {
+    Http::fake();
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', ['user_agent' => 'Googlebot/2.1 (+http://www.google.com/bot.html)  # Pattern: Googlebot\/ / URL: http://www.google.com/bot.html'])
+        ->assertSessionMissing('simplestats.tracking')
+        ->assertOk();
+});
