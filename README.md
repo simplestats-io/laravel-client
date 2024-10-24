@@ -124,8 +124,8 @@ return [
             'event' => Login::class,
         ],
 
-        // Make sure this model implements the TrackableUser or
-        // the TrackableUserWithCondition contract
+        // Make sure this model implements the TrackableIndividual or
+        // the TrackableIndividualWithCondition contract
         'user' => [
             'model' => User::class,
         ],

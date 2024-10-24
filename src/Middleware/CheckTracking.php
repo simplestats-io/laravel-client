@@ -5,8 +5,10 @@ namespace SimpleStatsIo\LaravelClient\Middleware;
 use Closure;
 use hisorange\BrowserDetect\Parser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
+use SimpleStatsIo\LaravelClient\Visitor;
 
 class CheckTracking
 {
@@ -30,14 +32,17 @@ class CheckTracking
         // remove empty/null items...
         $cleanedTrackingData = $collectedTrackingData->filter();
 
-        $cleanedTrackingData->put('referer', $this->getReferer());
-        $cleanedTrackingData->put('user_agent', $request->userAgent());
-        $cleanedTrackingData->put('page', $request->getPathInfo());
-        $cleanedTrackingData->put('ip', $request->ip());
+        $ip = $request->ip() ?? null;
+        $userAgent = ($request->userAgent()) ? urlencode($request->userAgent()) : null;
 
-        $request->session()->put(['simplestats.tracking' => $cleanedTrackingData]);
+        $cleanedTrackingData->put('ip', $ip);
+        $cleanedTrackingData->put('referer', $this->getReferer() ?? null);
+        $cleanedTrackingData->put('page', $request->getPathInfo() ?? null);
+        $cleanedTrackingData->put('user_agent', $userAgent);
 
-        SimplestatsClient::trackVisitor();
+        session()->put(['simplestats.tracking' => $cleanedTrackingData]);
+
+        $this->trackVisitor($ip, $userAgent);
 
         return $next($request);
     }
@@ -63,7 +68,7 @@ class CheckTracking
 
     protected function doTracking(Request $request): bool
     {
-        return empty($request->session()->get('simplestats.tracking'))
+        return empty(session()->get('simplestats.tracking'))
             && $request->isMethod('get')
             && ! $this->inExceptArray($request)
             && ! (new Parser)->parse($request->userAgent())->isBot();
@@ -82,5 +87,15 @@ class CheckTracking
         }
 
         return false;
+    }
+
+    public function trackVisitor(?string $ip, ?string $userAgent): void
+    {
+        $visitorTime = SimplestatsClient::getTime(now());
+        $visitorHash = SimplestatsClient::createVisitorHash($visitorTime, $ip, $userAgent);
+
+        session()->put('simplestats.visitor_hash', $visitorHash);
+
+        SimplestatsClient::trackVisitor(new Visitor($visitorHash));
     }
 }

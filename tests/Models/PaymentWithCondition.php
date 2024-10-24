@@ -5,6 +5,7 @@ namespace SimpleStatsIo\LaravelClient\Tests\Models;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use SimpleStatsIo\LaravelClient\Contracts\TrackableIndividual;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePaymentWithCondition;
 
 class PaymentWithCondition extends Authenticatable implements TrackablePaymentWithCondition
@@ -28,7 +29,7 @@ class PaymentWithCondition extends Authenticatable implements TrackablePaymentWi
         return $this->{self::CREATED_AT};
     }
 
-    public function getTrackingUser(): Authenticatable
+    public function getTrackingIndividual(): TrackableIndividual
     {
         return $this->user;
     }

@@ -4,13 +4,15 @@ namespace SimpleStatsIo\LaravelClient\Contracts;
 
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Auth\User;
+use SimpleStatsIo\LaravelClient\Visitor;
 
 interface TrackablePayment
 {
     /**
-     * The user associated with the payment.
+     * The individual associated with the payment.
+     * This may either be a user or a visitor.
      */
-    public function getTrackingUser(): User;
+    public function getTrackingIndividual(): TrackableIndividual;
 
     /**
      * The time when the payment happened.

@@ -4,9 +4,9 @@ namespace SimpleStatsIo\LaravelClient\Tests\Models;
 
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
+use SimpleStatsIo\LaravelClient\Contracts\TrackableIndividual;
 
-class User extends Authenticatable implements TrackableUser
+class User extends Authenticatable implements TrackableIndividual
 {
     protected $guarded = [];
 

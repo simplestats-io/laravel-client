@@ -4,33 +4,29 @@ namespace SimpleStatsIo\LaravelClient;
 
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Collection;
+use SimpleStatsIo\LaravelClient\Contracts\TrackableIndividual;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 
 class SimplestatsClient
 {
     const TIME_FORMAT = 'Y-m-d H:i:s P';
 
-    public function trackVisitor(): PendingDispatch
+    /**
+     * @param  TrackableIndividual  $visitor
+     */
+    public function trackVisitor(TrackableIndividual $visitor): PendingDispatch
     {
         $trackingData = $this->getSessionTracking();
 
-        $time = $this->getTime(now());
-        $ip = $trackingData['ip'] ?? null;
-        $userAgent = (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null;
-        $visitorHash = $this->createVisitorHash($time, $ip, $userAgent);
-
-        if (!session()->has('simplestats.visitor_hash')) {
-            session()->put('simplestats.visitor_hash', $visitorHash);
-        }
-
         $payload = [
-            'ip' => $ip,
-            'user_agent' => $userAgent,
+            'visitor_hash' => $visitor->getKey(),
+            'ip' => $trackingData['ip'] ?? null,
+            'user_agent' => $trackingData['user_agent'] ?? null,
             'track_referer' => $trackingData['referer'] ?? null,
             'track_source' => $trackingData['source'] ?? null,
             'track_medium' => $trackingData['medium'] ?? null,
@@ -38,24 +34,23 @@ class SimplestatsClient
             'track_term' => $trackingData['term'] ?? null,
             'track_content' => $trackingData['content'] ?? null,
             'page_entry' => $trackingData['page'] ?? null,
-            'visitor_hash' => $visitorHash,
-            'time' => $time,
+            'time' => $this->getTime(now()),
         ];
 
         return SendApiRequest::dispatch('stats-visitor', $payload);
     }
 
     /**
-     * @param  TrackableUser&Model  $user
+     * @param  TrackableIndividual&Model  $user
      */
-    public function trackLogin(TrackableUser $user): PendingDispatch
+    public function trackLogin(TrackableIndividual $user): PendingDispatch
     {
         $trackingData = $this->getSessionTracking();
 
         $payload = [
             'stats_user_id' => $user->getKey(),
             'ip' => $trackingData['ip'] ?? null,
-            'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
+            'user_agent' => $trackingData['user_agent'] ?? null,
             'time' => $this->getTime(now()),
         ];
 
@@ -63,16 +58,16 @@ class SimplestatsClient
     }
 
     /**
-     * @param  TrackableUser&Model  $user
+     * @param  TrackableIndividual&Model  $user
      */
-    public function trackUser(TrackableUser $user, bool $addLogin = false): PendingDispatch
+    public function trackUser(TrackableIndividual $user, bool $addLogin = false): PendingDispatch
     {
         $trackingData = $this->getSessionTracking();
 
         $payload = [
             'id' => $user->getKey(),
             'ip' => $trackingData['ip'] ?? null,
-            'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
+            'user_agent' => $trackingData['user_agent'] ?? null,
             'track_referer' => $trackingData['referer'] ?? null,
             'track_source' => $trackingData['source'] ?? null,
             'track_medium' => $trackingData['medium'] ?? null,
@@ -89,6 +84,8 @@ class SimplestatsClient
 
     /**
      * @param  TrackablePayment&Model  $payment
+     *
+     * @throws Exception
      */
     public function trackPayment(TrackablePayment $payment): PendingDispatch
     {
@@ -100,11 +97,11 @@ class SimplestatsClient
             'time' => $this->getTime($payment->getTrackingTime()),
         ];
 
-        if ($userId = $payment->getTrackingUser()?->getKey()) {
-            $payload['stats_user_id'] = $userId;
-        } else {
-//            'visitor_hash' => session('simplestats.visitorHash'),
-        }
+        $userModel = config('simplestats-client.tracking_types.user.model');
+
+        $trackingIndividual = $payment->getTrackingIndividual();
+        $trackingIndividualParam = ($trackingIndividual instanceof $userModel) ? 'stats_user_id' : 'visitor_hash';
+        $payload[$trackingIndividualParam] = $trackingIndividual->getKey();
 
         return SendApiRequest::dispatch('stats-payment', $payload);
     }
@@ -112,22 +109,15 @@ class SimplestatsClient
     protected function getSessionTracking(): Collection
     {
         return session('simplestats.tracking') ?? collect();
-    }
+    }q
 
-    /**
-     * @param  CarbonInterface  $time
-     * @return string
-     */
-    protected function getTime(CarbonInterface $time): string
+    public function getTime(CarbonInterface $time): string
     {
         return $time->tz('UTC')->format(self::TIME_FORMAT);
     }
 
     /**
-     * @param  string|null  $time
-     * @param  string|null  $ip
-     * @param  string|null  $userAgent
-     * @return string
+     * A unique hash that identifies the visit at this day.
      */
     public function createVisitorHash(?string $time, ?string $ip, ?string $userAgent): string
     {

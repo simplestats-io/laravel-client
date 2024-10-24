@@ -4,9 +4,9 @@ namespace SimpleStatsIo\LaravelClient\Tests\Models;
 
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableUserWithCondition;
+use SimpleStatsIo\LaravelClient\Contracts\TrackableIndividualWithCondition;
 
-class UserWithCondition extends Authenticatable implements TrackableUserWithCondition
+class UserWithCondition extends Authenticatable implements TrackableIndividualWithCondition
 {
     protected $table = 'users';
 
