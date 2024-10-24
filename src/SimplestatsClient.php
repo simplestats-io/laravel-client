@@ -109,7 +109,7 @@ class SimplestatsClient
     protected function getSessionTracking(): Collection
     {
         return session('simplestats.tracking') ?? collect();
-    }q
+    }
 
     public function getTime(CarbonInterface $time): string
     {
