@@ -12,7 +12,7 @@ it('handles referer', function ($referer, $expected) {
 
     $_SERVER['HTTP_REFERER'] = $referer;
 
-    get('/test')
+    get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'])
         ->assertSessionHas('simplestats.tracking.referer', $expected)
         ->assertOk();
 })->with([
@@ -21,3 +21,12 @@ it('handles referer', function ($referer, $expected) {
     'handles www.fake.test' => ['www.fake.test', 'fake.test'],
     'handles fake.test' => ['fake.test', 'fake.test'],
 ]);
+
+it('does not track bots', function () {
+    Http::fake();
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', ['user_agent' => 'Googlebot/2.1 (+http://www.google.com/bot.html)  # Pattern: Googlebot\/ / URL: http://www.google.com/bot.html'])
+        ->assertSessionMissing('simplestats.tracking')
+        ->assertOk();
+});
