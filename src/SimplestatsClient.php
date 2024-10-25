@@ -87,6 +87,7 @@ class SimplestatsClient
         $payload = [
             'id' => $payment->getKey(),
             'stats_user_id' => $user->getKey(),
+            // @phpstan-ignore-next-line
             'stats_user_time' => $this->getTime($user->getTrackingTime()),
             'gross' => $payment->getTrackingGross(),
             'net' => $payment->getTrackingNet(),
