@@ -43,6 +43,7 @@ class SimplestatsClient
 
         $payload = [
             'stats_user_id' => $user->getKey(),
+            'stats_user_time' => $this->getTime($user->getTrackingTime()),
             'ip' => $trackingData['ip'] ?? null,
             'user_agent' => (isset($trackingData['user_agent'])) ? urlencode($trackingData['user_agent']) : null,
             'time' => $this->getTime(now()),
@@ -81,9 +82,12 @@ class SimplestatsClient
      */
     public function trackPayment(TrackablePayment $payment): PendingDispatch
     {
+        $user = $payment->getTrackingUser();
+
         $payload = [
             'id' => $payment->getKey(),
-            'stats_user_id' => $payment->getTrackingUser()->getKey(),
+            'stats_user_id' => $user->getKey(),
+            'stats_user_time' => $this->getTime($user->getTrackingTime()),
             'gross' => $payment->getTrackingGross(),
             'net' => $payment->getTrackingNet(),
             'currency' => $payment->getTrackingCurrency(),
