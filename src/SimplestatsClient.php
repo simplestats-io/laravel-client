@@ -4,7 +4,6 @@ namespace SimpleStatsIo\LaravelClient;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Collection;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Contracts\TrackableUser;
@@ -14,7 +13,7 @@ class SimplestatsClient
 {
     const TIME_FORMAT = 'Y-m-d H:i:s P';
 
-    public function trackVisitor(): PendingDispatch
+    public function trackVisitor(): void
     {
         $trackingData = $this->getSessionTracking();
 
@@ -31,13 +30,13 @@ class SimplestatsClient
             'time' => $this->getTime(now()),
         ];
 
-        return SendApiRequest::dispatch('stats-visitor', $payload);
+        defer(fn () => SendApiRequest::dispatch('stats-visitor', $payload));
     }
 
     /**
      * @param  TrackableUser&Model  $user
      */
-    public function trackLogin(TrackableUser $user): PendingDispatch
+    public function trackLogin(TrackableUser $user): void
     {
         $trackingData = $this->getSessionTracking();
 
@@ -49,13 +48,13 @@ class SimplestatsClient
             'time' => $this->getTime(now()),
         ];
 
-        return SendApiRequest::dispatch('stats-login', $payload);
+        defer(fn () => SendApiRequest::dispatch('stats-login', $payload));
     }
 
     /**
      * @param  TrackableUser&Model  $user
      */
-    public function trackUser(TrackableUser $user, bool $addLogin = false): PendingDispatch
+    public function trackUser(TrackableUser $user, bool $addLogin = false): void
     {
         $trackingData = $this->getSessionTracking();
 
@@ -74,13 +73,13 @@ class SimplestatsClient
             'time' => $this->getTime($user->getTrackingTime()),
         ];
 
-        return SendApiRequest::dispatch('stats-user', $payload);
+        defer(fn () => SendApiRequest::dispatch('stats-user', $payload));
     }
 
     /**
      * @param  TrackablePayment&Model  $payment
      */
-    public function trackPayment(TrackablePayment $payment): PendingDispatch
+    public function trackPayment(TrackablePayment $payment): void
     {
         $user = $payment->getTrackingUser();
 
@@ -95,7 +94,7 @@ class SimplestatsClient
             'time' => $this->getTime($payment->getTrackingTime()),
         ];
 
-        return SendApiRequest::dispatch('stats-payment', $payload);
+        defer(fn () => SendApiRequest::dispatch('stats-payment', $payload));
     }
 
     protected function getSessionTracking(): Collection
