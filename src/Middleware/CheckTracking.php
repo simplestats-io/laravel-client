@@ -3,7 +3,7 @@
 namespace SimpleStatsIo\LaravelClient\Middleware;
 
 use Closure;
-use hisorange\BrowserDetect\Parser;
+use hisorange\BrowserDetect\Facade as Browser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
@@ -67,7 +67,7 @@ class CheckTracking
             && $request->isMethod('get')
             && ! $this->inExceptArray($request)
             && is_string($request->userAgent())
-            && ! (new Parser)->parse($request->userAgent())->isBot();
+            && ! Browser::parse($request->userAgent())->isBot();
     }
 
     protected function inExceptArray(Request $request): bool

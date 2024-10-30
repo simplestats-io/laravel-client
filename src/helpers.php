@@ -1,11 +1,15 @@
 <?php
 
-if (! function_exists('defer')) {
+if (! function_exists('safeDefer')) {
     /**
-     * Defer fallback.
+     * Safe Defer with fallback and swoole compatible.
      */
-    function defer(?callable $callback = null, ?string $name = null, bool $always = false)
+    function safeDefer(?callable $callback = null, ?string $name = null, bool $always = false): void
     {
-        return $callback();
+        if (function_exists('Illuminate\Support\defer')) {
+            Illuminate\Support\defer(...func_get_args());
+        } else {
+            $callback();
+        }
     }
 }

@@ -30,7 +30,7 @@ class SimplestatsClient
             'time' => $this->getTime(now()),
         ];
 
-        defer(fn () => SendApiRequest::dispatch('stats-visitor', $payload));
+        safeDefer(fn () => SendApiRequest::dispatch('stats-visitor', $payload));
     }
 
     /**
@@ -48,7 +48,7 @@ class SimplestatsClient
             'time' => $this->getTime(now()),
         ];
 
-        defer(fn () => SendApiRequest::dispatch('stats-login', $payload));
+        safeDefer(fn () => SendApiRequest::dispatch('stats-login', $payload));
     }
 
     /**
@@ -73,7 +73,7 @@ class SimplestatsClient
             'time' => $this->getTime($user->getTrackingTime()),
         ];
 
-        defer(fn () => SendApiRequest::dispatch('stats-user', $payload));
+        safeDefer(fn () => SendApiRequest::dispatch('stats-user', $payload));
     }
 
     /**
@@ -94,7 +94,7 @@ class SimplestatsClient
             'time' => $this->getTime($payment->getTrackingTime()),
         ];
 
-        defer(fn () => SendApiRequest::dispatch('stats-payment', $payload));
+        safeDefer(fn () => SendApiRequest::dispatch('stats-payment', $payload));
     }
 
     protected function getSessionTracking(): Collection
