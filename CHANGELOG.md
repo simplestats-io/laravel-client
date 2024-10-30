@@ -2,6 +2,18 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.12 - 2024-10-30
+
+### What's changed
+
+* when supported: use Laravels `defer` helper to handle tracking api calls to keep the client app fast and make the need of a queue optional
+
+## v2.0.11 - 2024-10-25
+
+### What's changed
+
+* stats user time fallback for tracked logins and payments where no user exists (happens with existing apps, where client hasn't imported user data)
+
 ## v2.0.10 - 2024-10-24
 
 ### What's changed

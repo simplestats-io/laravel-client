@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use SimpleStatsIo\LaravelClient\SimplestatsClientServiceProvider;
@@ -41,6 +42,15 @@ beforeEach(function () {
     $this->faker = \Faker\Factory::create();
 });
 
+function assertAfterDefer(Closure $callback): void
+{
+    if (class_exists(DeferredCallbackCollection::class)) {
+        app(DeferredCallbackCollection::class)->invoke();
+    }
+
+    $callback();
+}
+
 /**
  * USER
  */
@@ -50,9 +60,9 @@ it('sends an api request if a new user gets created', function () {
         'password' => bcrypt('password'),
     ]);
 
-    Http::assertSent(function ($request) {
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-user' && $request->method() == 'POST';
-    });
+    }));
 });
 
 it('sends an api request if a new users condition gets fulfilled', function () {
@@ -74,9 +84,9 @@ it('sends an api request if a new users condition gets fulfilled', function () {
         'email_verified_at' => now(),
     ]);
 
-    Http::assertSent(function ($request) {
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-user' && $request->method() == 'POST';
-    });
+    }));
 });
 
 /**
@@ -91,9 +101,9 @@ it('sends an api request if an user logs in', function () {
     $loginEvent = config('simplestats-client.tracking_types.login.event');
     event(new $loginEvent('web', $user, false));
 
-    Http::assertSent(function ($request) {
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-login' && $request->method() == 'POST';
-    });
+    }));
 });
 
 /**
@@ -109,9 +119,9 @@ it('sends an api request if a new payment gets created', function () {
         'user_id' => $user->id,
     ]);
 
-    Http::assertSent(function ($request) {
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-payment' && $request->method() == 'POST';
-    });
+    }));
 });
 
 it('sends an api request if a new payments condition gets fulfilled', function () {
@@ -129,15 +139,15 @@ it('sends an api request if a new payments condition gets fulfilled', function (
         'user_id' => $user->id,
     ]);
 
-    Http::assertNotSent(function ($request) {
+    assertAfterDefer(fn () => Http::assertNotSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-payment' && $request->method() == 'POST';
-    });
+    }));
 
     $conditionalPayment->update([
         'status' => 'completed',
     ]);
 
-    Http::assertSent(function ($request) {
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-payment' && $request->method() == 'POST';
-    });
+    }));
 });
