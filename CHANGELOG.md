@@ -2,6 +2,13 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.13 - 2024-10-30
+
+### What's changed
+
+* `safeDefer` with fallback cause of swoole
+* browser detect caching fix (use laravel facade)
+
 ## v2.0.12 - 2024-10-30
 
 ### What's changed

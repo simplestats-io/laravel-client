@@ -13,3 +13,18 @@ if (! function_exists('safeDefer')) {
         }
     }
 }
+
+if (! function_exists('getSimpleStatsVersion')) {
+    function getSimpleStatsVersion(): string
+    {
+        $composerFile = __DIR__.'/../composer.json';
+        $composerData = json_decode(file_get_contents($composerFile), true);
+
+        $packageName = $composerData['name'] ?? 'simplestats-io/laravel-client';
+
+        // in composer v1 \Composer\InstalledVersions is not available by default, but it is so rare, so we return unknown
+        return class_exists(\Composer\InstalledVersions::class)
+            ? \Composer\InstalledVersions::getVersion($packageName) ?? 'unknown'
+            : 'unknown';
+    }
+}
