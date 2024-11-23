@@ -89,7 +89,7 @@ class SimplestatsClient
      */
     public function trackPayment(TrackablePayment $payment): void
     {
-        $user = $payment->getTrackingUser();
+        $user = $payment->getTrackingPerson();
 
         $payload = [
             'id' => $payment->getKey(),
