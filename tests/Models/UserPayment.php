@@ -5,9 +5,8 @@ namespace SimpleStatsIo\LaravelClient\Tests\Models;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
+use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 
 class UserPayment extends Model implements TrackablePayment
 {

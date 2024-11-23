@@ -4,9 +4,8 @@ namespace SimpleStatsIo\LaravelClient\Tests\Models;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
-use SimplestatsClient;
-use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePaymentWithCondition;
+use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Visitor;
 
 class VisitorPaymentWithCondition extends Model implements TrackablePaymentWithCondition

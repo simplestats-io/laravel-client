@@ -1,20 +1,20 @@
 <?php
 
+use hisorange\BrowserDetect\ServiceProvider as BrowserDetectServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
-use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use SimpleStatsIo\LaravelClient\SimplestatsClientServiceProvider;
+use SimpleStatsIo\LaravelClient\Tests\Models\User;
 use SimpleStatsIo\LaravelClient\Tests\Models\UserPayment;
 use SimpleStatsIo\LaravelClient\Tests\Models\UserPaymentWithCondition;
-use SimpleStatsIo\LaravelClient\Tests\Models\User;
 use SimpleStatsIo\LaravelClient\Tests\Models\UserWithCondition;
 use SimpleStatsIo\LaravelClient\Tests\Models\VisitorPayment;
 use SimpleStatsIo\LaravelClient\Tests\Models\VisitorPaymentWithCondition;
 use SimpleStatsIo\LaravelClient\Visitor;
-use hisorange\BrowserDetect\ServiceProvider as BrowserDetectServiceProvider;
+
 use function Pest\Laravel\get;
 
 beforeEach(function () {
@@ -164,7 +164,6 @@ it('sends an api request if a new user payments condition gets fulfilled', funct
         return $request->url() == $this->apiUrl.'stats-payment' && $request->method() == 'POST';
     }));
 });
-
 
 /**
  * VISITOR PAYMENT
