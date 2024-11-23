@@ -3,23 +3,26 @@
 namespace SimpleStatsIo\LaravelClient\Tests\Models;
 
 use Carbon\CarbonInterface;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
+use SimplestatsClient;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
+use SimpleStatsIo\LaravelClient\Visitor;
 
-class Payment extends Authenticatable implements TrackablePayment
+class VisitorPayment extends Model implements TrackablePayment
 {
+    protected $table = 'payments';
+
     protected $guarded = [];
 
     public function getTrackingTime(): CarbonInterface
     {
-        return $this->{self::CREATED_AT};
+        return now();
     }
 
     public function getTrackingPerson(): TrackablePerson
     {
-        return $this->user;
+        return new Visitor($this->visitor_hash);
     }
 
     public function getTrackingGross(): float
@@ -35,10 +38,5 @@ class Payment extends Authenticatable implements TrackablePayment
     public function getTrackingCurrency(): string
     {
         return 'USD';
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 }

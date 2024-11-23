@@ -89,8 +89,6 @@ class SimplestatsClient
      */
     public function trackPayment(TrackablePayment $payment): void
     {
-        $user = $payment->getTrackingPerson();
-
         $payload = [
             'id' => $payment->getKey(),
             'gross' => $payment->getTrackingGross(),
@@ -104,7 +102,7 @@ class SimplestatsClient
 
         if ($trackingPerson instanceof $userModel) {
             $payload['stats_user_id'] = $trackingPerson->getKey();
-            $payload['stats_user_time'] = $this->getTime($user->getTrackingTime());
+            $payload['stats_user_time'] = $this->getTime($trackingPerson->getTrackingTime());
         } else {
             $payload['visitor_hash'] = $trackingPerson->getKey();
         }
