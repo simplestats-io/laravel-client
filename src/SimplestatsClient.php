@@ -7,17 +7,14 @@ use Carbon\CarbonInterface;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
+use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 
 class SimplestatsClient
 {
     const TIME_FORMAT = 'Y-m-d H:i:s P';
 
-    /**
-     * @param  TrackablePerson  $visitor
-     */
     public function trackVisitor(TrackablePerson $visitor): void
     {
         $trackingData = $this->getSessionTracking();
