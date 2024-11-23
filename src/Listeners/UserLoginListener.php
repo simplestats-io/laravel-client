@@ -3,8 +3,8 @@
 namespace SimpleStatsIo\LaravelClient\Listeners;
 
 use Illuminate\Auth\Events\Login;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableIndividual;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableIndividualWithCondition;
+use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
+use SimpleStatsIo\LaravelClient\Contracts\TrackablePersonWithCondition;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 
 class UserLoginListener
@@ -14,10 +14,10 @@ class UserLoginListener
      */
     public function handle(Login $event): void
     {
-        /** @var TrackableIndividual $user */
+        /** @var TrackablePerson $user */
         $user = $event->user;
 
-        if ($user instanceof TrackableIndividualWithCondition) {
+        if ($user instanceof TrackablePersonWithCondition) {
             if ($user->passTrackingCondition()) {
                 SimplestatsClient::trackLogin($user);
             }

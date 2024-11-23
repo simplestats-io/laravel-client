@@ -4,10 +4,10 @@ namespace SimpleStatsIo\LaravelClient\Contracts;
 
 use Carbon\CarbonInterface;
 
-interface TrackableIndividual
+interface TrackablePerson
 {
     /**
-     * Get the value of the individual's primary key.
+     * Get the value of the person's primary key.
      *
      * @return mixed
      */

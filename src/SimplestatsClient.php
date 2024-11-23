@@ -7,7 +7,7 @@ use Carbon\CarbonInterface;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableIndividual;
+use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 
@@ -16,9 +16,9 @@ class SimplestatsClient
     const TIME_FORMAT = 'Y-m-d H:i:s P';
 
     /**
-     * @param  TrackableIndividual  $visitor
+     * @param  TrackablePerson  $visitor
      */
-    public function trackVisitor(TrackableIndividual $visitor): void
+    public function trackVisitor(TrackablePerson $visitor): void
     {
         $trackingData = $this->getSessionTracking();
 
@@ -40,9 +40,9 @@ class SimplestatsClient
     }
 
     /**
-     * @param  TrackableIndividual&Model  $user
+     * @param  TrackablePerson&Model  $user
      */
-    public function trackLogin(TrackableIndividual $user): void
+    public function trackLogin(TrackablePerson $user): void
     {
         $trackingData = $this->getSessionTracking();
 
@@ -58,9 +58,9 @@ class SimplestatsClient
     }
 
     /**
-     * @param  TrackableIndividual&Model  $user
+     * @param  TrackablePerson&Model  $user
      */
-    public function trackUser(TrackableIndividual $user, bool $addLogin = false): void
+    public function trackUser(TrackablePerson $user, bool $addLogin = false): void
     {
         $trackingData = $this->getSessionTracking();
 
@@ -100,13 +100,13 @@ class SimplestatsClient
         ];
 
         $userModel = config('simplestats-client.tracking_types.user.model');
-        $trackingIndividual = $payment->getTrackingIndividual();
+        $trackingPerson = $payment->getTrackingPerson();
 
-        if ($trackingIndividual instanceof $userModel) {
-            $payload['stats_user_id'] = $trackingIndividual->getKey();
+        if ($trackingPerson instanceof $userModel) {
+            $payload['stats_user_id'] = $trackingPerson->getKey();
             $payload['stats_user_time'] = $this->getTime($user->getTrackingTime());
         } else {
-            $payload['visitor_hash'] = $trackingIndividual->getKey();
+            $payload['visitor_hash'] = $trackingPerson->getKey();
         }
 
         safeDefer(fn () => SendApiRequest::dispatch('stats-payment', $payload));

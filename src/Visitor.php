@@ -3,9 +3,9 @@
 namespace SimpleStatsIo\LaravelClient;
 
 use Carbon\CarbonInterface;
-use SimpleStatsIo\LaravelClient\Contracts\TrackableIndividual;
+use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 
-class Visitor implements TrackableIndividual
+class Visitor implements TrackablePerson
 {
     private string $key;
 

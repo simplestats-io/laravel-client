@@ -69,7 +69,7 @@ All notable changes to `simplestats-client` will be documented in this file.
 
 ### What's changed
 
-* fixed TrackableIndividualWithCondition bug
+* fixed TrackablePersonWithCondition bug
 
 ## v2.0.1 - 2024-07-15
 
