@@ -5,7 +5,6 @@ namespace SimpleStatsIo\LaravelClient\Middleware;
 use Closure;
 use hisorange\BrowserDetect\Facade as Browser;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\Visitor;

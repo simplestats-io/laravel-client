@@ -14,7 +14,7 @@ return new class extends Migration
             throw new \Exception('Please define your payment model in simplestats client config before running this migration.');
         }
 
-        Schema::table((new $paymentModel())->getTable(), function (Blueprint $table) {
+        Schema::table((new $paymentModel)->getTable(), function (Blueprint $table) {
             $table->string('visitor_hash', 32)->nullable();
         });
     }
@@ -23,7 +23,7 @@ return new class extends Migration
     {
         $paymentModel = config('simplestats-client.tracking_types.payment.model');
 
-        Schema::table((new $paymentModel())->getTable(), function (Blueprint $table) {
+        Schema::table((new $paymentModel)->getTable(), function (Blueprint $table) {
             $table->dropColumn('visitor_hash');
         });
     }
