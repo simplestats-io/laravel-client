@@ -2,6 +2,12 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v2.0.14 - 2024-10-31
+
+### What's changed
+
+* added client package version header
+
 ## v2.0.13 - 2024-10-30
 
 ### What's changed
