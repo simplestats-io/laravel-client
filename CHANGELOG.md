@@ -2,6 +2,17 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.0.0 - 2024-11-25
+
+### What's changed
+
+* Payments can now also be associated with visitors. Check the docs [here](https://simplestats.io/docs/how-to-track-a-new-payment.html#payment-tracking-for-visitors).
+
+### Migration Guide
+
+If you upgrade to version 3, the only thing you have to do is to rename to `TrackableUser` contract to `TrackablePerson`.
+Check the docs [here](https://simplestats.io/docs/how-to-track-a-new-user.html#user-tracking).
+
 ## v2.0.14 - 2024-10-31
 
 ### What's changed
