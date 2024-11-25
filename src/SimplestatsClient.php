@@ -123,7 +123,7 @@ class SimplestatsClient
     public function createVisitorHash(?string $time, ?string $ip, ?string $userAgent): string
     {
         $time = Carbon::parse($time);
-        $visitorHash = hash('sha256', $ip.$userAgent.$time?->format('Y-m-d').config('app.key'));
+        $visitorHash = hash('sha256', $ip.$userAgent.$time->format('Y-m-d').config('app.key'));
 
         return substr($visitorHash, 0, 32);
     }
