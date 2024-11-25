@@ -33,10 +33,12 @@ class CheckTracking
 
         $ip = $request->ip() ?? null;
         $userAgent = ($request->userAgent()) ? urlencode($request->userAgent()) : null;
+        $referer = $this->getReferer();
+        $path = $request->getPathInfo();
 
         $cleanedTrackingData->put('ip', $ip);
-        $cleanedTrackingData->put('referer', $this->getReferer() ?? null);
-        $cleanedTrackingData->put('page', $request->getPathInfo() ?? null);
+        $cleanedTrackingData->put('referer', (! empty($referer)) ? $referer : null);
+        $cleanedTrackingData->put('page', (! empty($path)) ? $path : null);
         $cleanedTrackingData->put('user_agent', $userAgent);
 
         session()->put(['simplestats.tracking' => $cleanedTrackingData]);
