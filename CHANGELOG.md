@@ -2,6 +2,16 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.1.0 - 2025-02-23
+
+### What's Changed
+
+* Bump dependabot/fetch-metadata from 2.2.0 to 2.3.0 by @dependabot in https://github.com/simplestats-io/laravel-client/pull/13
+* Bump aglipanci/laravel-pint-action from 2.4 to 2.5 by @dependabot in https://github.com/simplestats-io/laravel-client/pull/14
+* Laravel 12 Support
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.0.0...v3.1.0
+
 ## v3.0.0 - 2024-11-25
 
 ### What's changed
