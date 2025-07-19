@@ -2,6 +2,17 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.1.1 - 2025-07-19
+
+### What's Changed
+
+* fix typos in config comments
+* fix phpstan
+* Bump dependabot/fetch-metadata from 2.3.0 to 2.4.0 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/16
+* Bump stefanzweifel/git-auto-commit-action from 5 to 6 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/17
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.1.0...v3.1.1
+
 ## v3.1.0 - 2025-02-23
 
 ### What's Changed
