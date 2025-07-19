@@ -41,14 +41,13 @@ return [
      | SimpleStats Settings
      |--------------------------------------------------------------------------
      |
-     | SimpleStats is enabled by default. Be aware that if you turn disable it,
-     | you may lose important tracking data. In most cases, leave it enabled!
+     | SimpleStats is enabled by default. Disabling it will stop tracking your stats.
      |
      | You can provide an array of URI's that must be ignored (eg. 'api/*')
      */
 
     'enabled' => env('SIMPLESTATS_ENABLED', true),
-    
+
     'except' => [
         'telescope*',
         'horizon*',
@@ -63,7 +62,7 @@ return [
      |
      | Define your API credentials here. If you are not told to change the API URL,
      | just keep the default. It's important to set an API token! You'll receive
-     | one, after creating an Instance for a Project on https://simplestats.io
+     | one, after creating your team and project on https://simplestats.io
      |
      */
 
@@ -77,7 +76,7 @@ return [
      |--------------------------------------------------------------------------
      |
      | To avoid the tracking API calls block the whole request and for fault tolerance,
-     | we highly recommend to use Laravel's built-in queue-system. Here you can define
+     | we highly recommend using Laravel's built-in queue-system. Here you can define
      | to which queue the tracking API calls should be dispatched and handled by.
      |
      */
@@ -125,7 +124,7 @@ return [
         ],
 
         // Make sure this model implements the TrackablePerson or
-        // the TrackablePersonWithCondition contract
+        // the TrackablePersonWithCondition Contract
         'user' => [
             'model' => User::class,
         ],
