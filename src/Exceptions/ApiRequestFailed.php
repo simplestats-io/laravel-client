@@ -4,4 +4,6 @@ namespace SimpleStatsIo\LaravelClient\Exceptions;
 
 use Exception;
 
-class ApiRequestFailed extends Exception {}
+class ApiRequestFailed extends Exception
+{
+}
