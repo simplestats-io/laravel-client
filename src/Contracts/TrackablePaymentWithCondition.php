@@ -2,6 +2,4 @@
 
 namespace SimpleStatsIo\LaravelClient\Contracts;
 
-interface TrackablePaymentWithCondition extends TrackablePayment, TrackableWithCondition
-{
-}
+interface TrackablePaymentWithCondition extends TrackablePayment, TrackableWithCondition {}
