@@ -2,6 +2,16 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.2.0 - 2025-12-02
+
+### What's Changed
+
+* Support blocked ips
+* Bump aglipanci/laravel-pint-action from 2.5 to 2.6 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/18
+* Bump actions/checkout from 4 to 6 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/22
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.1.1...v3.2.0
+
 ## v3.1.1 - 2025-07-19
 
 ### What's Changed
