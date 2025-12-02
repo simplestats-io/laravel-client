@@ -72,8 +72,47 @@ class CheckTracking
         return empty(session()->get('simplestats.tracking'))
             && $request->isMethod('get')
             && ! $this->inExceptArray($request)
+            && ! $this->isBlockedIp($request->ip())
             && is_string($request->userAgent())
             && ! Browser::parse($request->userAgent())->isBot();
+    }
+
+    protected function isBlockedIp(?string $ip): bool
+    {
+        if ($ip === null) {
+            return false;
+        }
+
+        $blockedIps = config('simplestats-client.blocked_ips', []);
+
+        foreach ($blockedIps as $blocked) {
+            if (str_contains($blocked, '/')) {
+                if ($this->ipInCidrRange($ip, $blocked)) {
+                    return true;
+                }
+            } elseif ($ip === $blocked) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function ipInCidrRange(string $ip, string $cidr): bool
+    {
+        [$subnet, $bits] = explode('/', $cidr);
+
+        $ipLong = ip2long($ip);
+        $subnetLong = ip2long($subnet);
+
+        if ($ipLong === false || $subnetLong === false) {
+            return false;
+        }
+
+        $mask = -1 << (32 - (int) $bits);
+        $subnetLong &= $mask;
+
+        return ($ipLong & $mask) === $subnetLong;
     }
 
     protected function inExceptArray(Request $request): bool
