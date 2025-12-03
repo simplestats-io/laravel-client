@@ -15,7 +15,7 @@ return new class extends Migration
         }
 
         Schema::table((new $paymentModel)->getTable(), function (Blueprint $table) {
-            $table->string('visitor_hash', 32)->nullable();
+            $table->string('visitor_hash')->nullable();
         });
     }
 
