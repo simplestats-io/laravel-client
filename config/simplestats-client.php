@@ -26,7 +26,7 @@ return [
 
     /*
      |--------------------------------------------------------------------------
-     | Blocked IPs
+     | SimpleStats Blocked IPs
      |--------------------------------------------------------------------------
      |
      | Define IP addresses or CIDR ranges that should be excluded from tracking.
