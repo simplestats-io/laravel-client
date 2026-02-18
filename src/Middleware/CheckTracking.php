@@ -13,7 +13,9 @@ class CheckTracking
 {
     public function handle(Request $request, Closure $next)
     {
-        if (! $this->doTracking($request)) {
+        $ip = $this->resolveIp($request);
+
+        if (! $this->doTracking($request, $ip)) {
             return $next($request);
         }
 
@@ -31,7 +33,6 @@ class CheckTracking
         // remove empty/null items...
         $cleanedTrackingData = $collectedTrackingData->filter();
 
-        $ip = $request->ip() ?? null;
         $userAgent = ($request->userAgent()) ? urlencode($request->userAgent()) : null;
         $referer = $this->getReferer();
         $path = $request->getPathInfo();
@@ -67,14 +68,52 @@ class CheckTracking
         return '';
     }
 
-    protected function doTracking(Request $request): bool
+    protected function doTracking(Request $request, ?string $ip): bool
     {
         return empty(session()->get('simplestats.tracking'))
             && $request->isMethod('get')
             && ! $this->inExceptArray($request)
-            && ! $this->isBlockedIp($request->ip())
+            && ! $this->isBlockedIp($ip)
             && is_string($request->userAgent())
             && ! Browser::parse($request->userAgent())->isBot();
+    }
+
+    protected function resolveIp(Request $request): ?string
+    {
+        $ip = $request->ip();
+
+        if ($ip !== null && $this->isPublicIp($ip)) {
+            return $ip;
+        }
+
+        $headers = [
+            'CF-Connecting-IP',
+            'True-Client-IP',
+            'X-Forwarded-For',
+            'X-Real-IP',
+        ];
+
+        foreach ($headers as $header) {
+            $value = $request->header($header);
+
+            if ($value === null) {
+                continue;
+            }
+
+            // X-Forwarded-For can contain multiple IPs: client, proxy1, proxy2
+            $candidate = trim(explode(',', $value)[0]);
+
+            if ($this->isPublicIp($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return $ip;
+    }
+
+    protected function isPublicIp(string $ip): bool
+    {
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
     }
 
     protected function isBlockedIp(?string $ip): bool
