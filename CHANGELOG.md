@@ -2,6 +2,15 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.2.1 - 2026-02-18
+
+### What's Changed
+
+* Bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/24
+* dynamically resolve proxy ips
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.2.0...v3.2.1
+
 ## v3.2.0 - 2025-12-02
 
 ### What's Changed
