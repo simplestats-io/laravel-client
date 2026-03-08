@@ -17,6 +17,8 @@ use SimpleStatsIo\LaravelClient\Visitor;
 
 use function Pest\Laravel\get;
 
+use SimpleStatsIo\LaravelClient\SimplestatsClient;
+
 beforeEach(function () {
     Schema::create('users', function (Blueprint $table) {
         $table->id();
@@ -211,5 +213,38 @@ it('sends an api request if a new visitor payments condition gets fulfilled', fu
 
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-payment' && $request->method() == 'POST';
+    }));
+});
+
+/**
+ * CUSTOM EVENT
+ */
+it('sends an api request for a custom event with a user', function () {
+    $user = User::create([
+        'email' => $this->faker->safeEmail(),
+        'password' => bcrypt('password'),
+    ]);
+
+    app(SimplestatsClient::class)->trackCustomEvent('evt-1', 'Button Clicked', null, $user);
+
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-custom-event'
+            && $request->method() == 'POST'
+            && $request['name'] == 'Button Clicked'
+            && isset($request['stats_user_id']);
+    }));
+});
+
+it('sends an api request for a custom event with a visitor', function () {
+    $visitor = new Visitor('abc123hash');
+
+    app(SimplestatsClient::class)->trackCustomEvent('evt-2', 'Page Viewed', 1.5, $visitor);
+
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-custom-event'
+            && $request->method() == 'POST'
+            && $request['name'] == 'Page Viewed'
+            && $request['visitor_hash'] == 'abc123hash'
+            && $request['value'] == 1.5;
     }));
 });
