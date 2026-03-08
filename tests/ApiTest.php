@@ -18,8 +18,6 @@ use SimpleStatsIo\LaravelClient\Visitor;
 
 use function Pest\Laravel\get;
 
-use SimpleStatsIo\LaravelClient\SimplestatsClient;
-
 beforeEach(function () {
     Schema::create('users', function (Blueprint $table) {
         $table->id();
