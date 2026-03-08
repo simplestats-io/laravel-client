@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use SimpleStatsIo\LaravelClient\SimplestatsClient;
-use SimpleStatsIo\LaravelClient\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\SimplestatsClientServiceProvider;
 use SimpleStatsIo\LaravelClient\Tests\Models\User;
 use SimpleStatsIo\LaravelClient\Tests\Models\UserPayment;
@@ -225,7 +224,7 @@ it('sends an api request for a custom event with a user', function () {
         'password' => bcrypt('password'),
     ]);
 
-    app(SimplestatsClient::class)->trackCustomEvent('evt-1', 'Button Clicked', null, $user);
+    app(SimplestatsClient::class)->trackCustomEvent('evt-1', 'Button Clicked', $user);
 
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-custom-event'
@@ -238,13 +237,12 @@ it('sends an api request for a custom event with a user', function () {
 it('sends an api request for a custom event with a visitor', function () {
     $visitor = new Visitor('abc123hash');
 
-    app(SimplestatsClient::class)->trackCustomEvent('evt-2', 'Page Viewed', 1.5, $visitor);
+    app(SimplestatsClient::class)->trackCustomEvent('evt-2', 'Page Viewed', $visitor);
 
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-custom-event'
             && $request->method() == 'POST'
             && $request['name'] == 'Page Viewed'
-            && $request['visitor_hash'] == 'abc123hash'
-            && $request['value'] == 1.5;
+            && $request['visitor_hash'] == 'abc123hash';
     }));
 });

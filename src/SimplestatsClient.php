@@ -107,17 +107,13 @@ class SimplestatsClient
         safeDefer(fn () => SendApiRequest::dispatch('stats-payment', $payload));
     }
 
-    public function trackCustomEvent(string $id, string $name, ?float $value, TrackablePerson $user): void
+    public function trackCustomEvent(string $id, string $name, TrackablePerson $user): void
     {
         $payload = [
             'id' => $id,
             'name' => $name,
             'time' => $this->getTime(now()),
         ];
-
-        if ($value !== null) {
-            $payload['value'] = $value;
-        }
 
         $userModel = config('simplestats-client.tracking_types.user.model');
 
