@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use SimpleStatsIo\LaravelClient\SimplestatsClient;
+use SimpleStatsIo\LaravelClient\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\SimplestatsClientServiceProvider;
 use SimpleStatsIo\LaravelClient\Tests\Models\User;
 use SimpleStatsIo\LaravelClient\Tests\Models\UserPayment;
