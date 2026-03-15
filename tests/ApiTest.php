@@ -1,5 +1,6 @@
 <?php
 
+use Faker\Factory;
 use hisorange\BrowserDetect\ServiceProvider as BrowserDetectServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Defer\DeferredCallbackCollection;
@@ -48,7 +49,7 @@ beforeEach(function () {
     app()->getProvider(SimplestatsClientServiceProvider::class)->boot();
     app()->register(BrowserDetectServiceProvider::class);
 
-    $this->faker = \Faker\Factory::create();
+    $this->faker = Factory::create();
 });
 
 function assertAfterDefer(Closure $callback): void

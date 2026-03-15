@@ -1,5 +1,7 @@
 <?php
 
+use Composer\InstalledVersions;
+
 if (! function_exists('safeDefer')) {
     /**
      * Safe Defer with fallback and swoole compatible.
@@ -23,8 +25,8 @@ if (! function_exists('getSimpleStatsVersion')) {
         $packageName = $composerData['name'] ?? 'simplestats-io/laravel-client';
 
         // in composer v1 \Composer\InstalledVersions is not available by default, but it is so rare, so we return unknown
-        return class_exists(\Composer\InstalledVersions::class)
-            ? \Composer\InstalledVersions::getVersion($packageName) ?? 'unknown'
+        return class_exists(InstalledVersions::class)
+            ? InstalledVersions::getVersion($packageName) ?? 'unknown'
             : 'unknown';
     }
 }
