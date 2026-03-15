@@ -11,7 +11,7 @@ return new class extends Migration
         $paymentModel = config('simplestats-client.tracking_types.payment.model');
 
         if (! $paymentModel || ! class_exists($paymentModel)) {
-            throw new \Exception('Please define your payment model in simplestats client config before running this migration.');
+            throw new Exception('Please define your payment model in simplestats client config before running this migration.');
         }
 
         Schema::table((new $paymentModel)->getTable(), function (Blueprint $table) {
