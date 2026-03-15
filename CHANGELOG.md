@@ -2,6 +2,14 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.4.1 - 2026-03-15
+
+### What's changed
+
+* php 7.4 fixes
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.3.0...v3.4.1
+
 ## v3.4.0 - 2026-03-15
 
 ### What's changed
