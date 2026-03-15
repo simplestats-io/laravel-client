@@ -42,7 +42,7 @@ class SendApiRequest implements ShouldQueue
     {
         try {
             $response = $apiConnector->request($this->route, $this->payload, $this->method);
-        } catch (ConnectionException) {
+        } catch (ConnectionException $e) {
             $response = null;
         }
 
@@ -55,7 +55,7 @@ class SendApiRequest implements ShouldQueue
         if ($attempt >= $this->tries) {
             Log::warning('SimpleStats API request failed after all retries.', [
                 'route' => $this->route,
-                'status' => $response?->status(),
+                'status' => $response ? $response->status() : null,
             ]);
             $this->delete();
 
