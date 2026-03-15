@@ -5,8 +5,10 @@ namespace SimpleStatsIo\LaravelClient\Jobs;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use SimpleStatsIo\LaravelClient\Services\ApiConnector;
 
 class SendApiRequest implements ShouldQueue
@@ -20,9 +22,9 @@ class SendApiRequest implements ShouldQueue
     protected string $method;
 
     /**
-     * Let's retry 15 times (if the stats tool is temporary not reachable or has a heavy outage).
-     * First, we try more often, and after seven times, we only try every day (the last item in the backoff array)
-     * Means we have one week to fix a heavy outage...
+     * Retry up to 15 times to handle temporary unavailability or prolonged outages.
+     * Backoff starts frequently (5s, 10s, 60s, ...) then slows to once per day,
+     * giving roughly one week to resolve a major outage before attempts are exhausted.
      */
     public int $tries = 15;
 
@@ -38,6 +40,29 @@ class SendApiRequest implements ShouldQueue
 
     public function handle(ApiConnector $apiConnector): void
     {
-        $apiConnector->request($this->route, $this->payload, $this->method);
+        try {
+            $response = $apiConnector->request($this->route, $this->payload, $this->method);
+        } catch (ConnectionException) {
+            $response = null;
+        }
+
+        if ($response && $response->successful()) {
+            return;
+        }
+
+        $attempt = $this->attempts();
+
+        if ($attempt >= $this->tries) {
+            Log::warning('SimpleStats API request failed after all retries.', [
+                'route' => $this->route,
+                'status' => $response?->status(),
+            ]);
+            $this->delete();
+
+            return;
+        }
+
+        $backoffIndex = min($attempt - 1, count($this->backoff) - 1);
+        $this->release($this->backoff[$backoffIndex]);
     }
 }
