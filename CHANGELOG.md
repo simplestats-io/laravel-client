@@ -2,6 +2,14 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.3.0 - 2026-03-08
+
+### What's Changed
+
+* Custom Events Support
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.2.1...v3.3.0
+
 ## v3.2.1 - 2026-02-18
 
 ### What's Changed
