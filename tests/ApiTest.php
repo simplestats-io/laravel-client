@@ -1,11 +1,13 @@
 <?php
 
+use Faker\Factory;
 use hisorange\BrowserDetect\ServiceProvider as BrowserDetectServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
+use SimpleStatsIo\LaravelClient\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\SimplestatsClientServiceProvider;
 use SimpleStatsIo\LaravelClient\Tests\Models\User;
 use SimpleStatsIo\LaravelClient\Tests\Models\UserPayment;
@@ -47,7 +49,7 @@ beforeEach(function () {
     app()->getProvider(SimplestatsClientServiceProvider::class)->boot();
     app()->register(BrowserDetectServiceProvider::class);
 
-    $this->faker = \Faker\Factory::create();
+    $this->faker = Factory::create();
 });
 
 function assertAfterDefer(Closure $callback): void
@@ -211,5 +213,37 @@ it('sends an api request if a new visitor payments condition gets fulfilled', fu
 
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-payment' && $request->method() == 'POST';
+    }));
+});
+
+/**
+ * CUSTOM EVENT
+ */
+it('sends an api request for a custom event with a user', function () {
+    $user = User::create([
+        'email' => $this->faker->safeEmail(),
+        'password' => bcrypt('password'),
+    ]);
+
+    app(SimplestatsClient::class)->trackCustomEvent('evt-1', 'Button Clicked', $user);
+
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-custom-event'
+            && $request->method() == 'POST'
+            && $request['name'] == 'Button Clicked'
+            && isset($request['stats_user_id']);
+    }));
+});
+
+it('sends an api request for a custom event with a visitor', function () {
+    $visitor = new Visitor('abc123hash');
+
+    app(SimplestatsClient::class)->trackCustomEvent('evt-2', 'Page Viewed', $visitor);
+
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-custom-event'
+            && $request->method() == 'POST'
+            && $request['name'] == 'Page Viewed'
+            && $request['visitor_hash'] == 'abc123hash';
     }));
 });

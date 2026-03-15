@@ -2,6 +2,57 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.4.1 - 2026-03-15
+
+### What's changed
+
+* php 7.4 fixes
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.3.0...v3.4.1
+
+## v3.4.0 - 2026-03-15
+
+### What's changed
+
+* improved API error handling
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.3.0...v3.4.0
+
+## v3.3.1 - 2026-03-15
+
+### What's changed
+
+* improved API error handling
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.3.0...v3.3.1
+
+## v3.3.0 - 2026-03-08
+
+### What's Changed
+
+* Custom Events Support
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.2.1...v3.3.0
+
+## v3.2.1 - 2026-02-18
+
+### What's Changed
+
+* Bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/24
+* dynamically resolve proxy ips
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.2.0...v3.2.1
+
+## v3.2.0 - 2025-12-02
+
+### What's Changed
+
+* Support blocked ips
+* Bump aglipanci/laravel-pint-action from 2.5 to 2.6 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/18
+* Bump actions/checkout from 4 to 6 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/22
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.1.1...v3.2.0
+
 ## v3.1.1 - 2025-07-19
 
 ### What's Changed

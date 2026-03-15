@@ -107,6 +107,26 @@ class SimplestatsClient
         safeDefer(fn () => SendApiRequest::dispatch('stats-payment', $payload));
     }
 
+    public function trackCustomEvent(string $id, string $name, TrackablePerson $user): void
+    {
+        $payload = [
+            'id' => $id,
+            'name' => $name,
+            'time' => $this->getTime(now()),
+        ];
+
+        $userModel = config('simplestats-client.tracking_types.user.model');
+
+        if ($user instanceof $userModel) {
+            $payload['stats_user_id'] = $user->getKey();
+            $payload['stats_user_time'] = $this->getTime($user->getTrackingTime());
+        } else {
+            $payload['visitor_hash'] = $user->getKey();
+        }
+
+        safeDefer(fn () => SendApiRequest::dispatch('stats-custom-event', $payload));
+    }
+
     protected function getSessionTracking(): Collection
     {
         return session('simplestats.tracking') ?? collect();
