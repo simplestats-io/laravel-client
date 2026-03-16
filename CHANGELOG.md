@@ -2,6 +2,16 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.4.2 - 2026-03-16
+
+### What's Changed
+
+* fixed ip issues
+* Bump actions/checkout from 4 to 5 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/19
+* Bump stefanzweifel/git-auto-commit-action from 6 to 7 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/20
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.4.1...v3.4.2
+
 ## v3.4.1 - 2026-03-15
 
 ### What's changed
