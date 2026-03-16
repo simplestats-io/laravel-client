@@ -144,6 +144,44 @@ it('blocks resolved proxy IP when it matches blocked IPs', function () {
         ->assertOk();
 });
 
+it('resolves IP from proxy headers when REMOTE_ADDR is IPv6-mapped private IPv4', function () {
+    Http::fake();
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'REMOTE_ADDR' => '::ffff:172.17.0.1',
+        'HTTP_X_FORWARDED_FOR' => '203.0.113.50',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])
+        ->assertSessionHas('simplestats.tracking.ip', '203.0.113.50')
+        ->assertOk();
+});
+
+it('normalizes IPv6-mapped public IPv4 from request IP', function () {
+    Http::fake();
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'REMOTE_ADDR' => '::ffff:8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])
+        ->assertSessionHas('simplestats.tracking.ip', '8.8.8.8')
+        ->assertOk();
+});
+
+it('finds public IP in X-Forwarded-For chain when first entry is private', function () {
+    Http::fake();
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'REMOTE_ADDR' => '192.168.1.1',
+        'HTTP_X_FORWARDED_FOR' => '10.0.0.2, 203.0.113.50, 172.16.0.1',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])
+        ->assertSessionHas('simplestats.tracking.ip', '203.0.113.50')
+        ->assertOk();
+});
+
 it('skips invalid header values and continues checking next header', function () {
     Http::fake();
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);

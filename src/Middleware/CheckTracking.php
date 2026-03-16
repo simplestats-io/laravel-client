@@ -80,7 +80,7 @@ class CheckTracking
 
     protected function resolveIp(Request $request): ?string
     {
-        $ip = $request->ip();
+        $ip = $this->normalizeIp($request->ip());
 
         if ($ip !== null && $this->isPublicIp($ip)) {
             return $ip;
@@ -100,11 +100,37 @@ class CheckTracking
                 continue;
             }
 
-            // X-Forwarded-For can contain multiple IPs: client, proxy1, proxy2
-            $candidate = trim(explode(',', $value)[0]);
+            // Headers can contain multiple IPs (e.g. X-Forwarded-For: client, proxy1, proxy2)
+            // Check all candidates to find the first public IP
+            $candidates = explode(',', $value);
 
-            if ($this->isPublicIp($candidate)) {
-                return $candidate;
+            foreach ($candidates as $candidate) {
+                $candidate = $this->normalizeIp(trim($candidate));
+
+                if ($candidate !== null && $this->isPublicIp($candidate)) {
+                    return $candidate;
+                }
+            }
+        }
+
+        return $ip;
+    }
+
+    /**
+     * Normalize IPv6-mapped IPv4 addresses (e.g. ::ffff:172.17.0.1) to plain IPv4.
+     */
+    protected function normalizeIp(?string $ip): ?string
+    {
+        if ($ip === null) {
+            return null;
+        }
+
+        // Strip ::ffff: prefix from IPv6-mapped IPv4 addresses
+        if (stripos($ip, '::ffff:') === 0) {
+            $ipv4 = substr($ip, 7);
+
+            if (filter_var($ipv4, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+                return $ipv4;
             }
         }
 
