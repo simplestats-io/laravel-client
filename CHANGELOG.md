@@ -2,6 +2,20 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.5.0 - 2026-03-18
+
+### What's Changed
+
+* Bump ramsey/composer-install from 3 to 4 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/25
+* Laravel 13 support by @jhhazelaar in https://github.com/simplestats-io/laravel-client/pull/27
+* Fix coverage driver error by removing --ci flag from Pest by @jhhazelaar in https://github.com/simplestats-io/laravel-client/pull/28
+
+### New Contributors
+
+* @jhhazelaar made their first contribution in https://github.com/simplestats-io/laravel-client/pull/27
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.4.2...v3.5.0
+
 ## v3.4.2 - 2026-03-16
 
 ### What's Changed
