@@ -28,7 +28,7 @@
     "require-dev": {
         "nunomaduro/larastan": "^1.0 || ^2.0.1 || ^3.1",
         "orchestra/testbench": "^6.27 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0",
-        "pestphp/pest": "^1.22 || ^2.0 || ^3.7",
+        "pestphp/pest": "^1.22 || ^2.0 || ^3.7 || ^4.0",
         "pestphp/pest-plugin-laravel": "^1.22 || ^2.0 || ^3.1 || ^4.0",
         "phpstan/extension-installer": "^1.1",
         "phpstan/phpstan-deprecation-rules": "^1.0 || ^2.0",
