@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static void trackVisitor(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $visitor)
- * @method static void trackLogin(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user)
+ * @method static void trackLogin(\Illuminate\Contracts\Auth\Authenticatable $user)
  * @method static void trackUser(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user, bool $addLogin = false)
  * @method static void trackPayment(\SimpleStatsIo\LaravelClient\Contracts\TrackablePayment $payment)
  * @method static void trackCustomEvent(string $id, string $name, \SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user)

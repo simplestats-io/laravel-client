@@ -5,6 +5,7 @@ namespace SimpleStatsIo\LaravelClient;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Exception;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
@@ -37,15 +38,15 @@ class SimplestatsClient
     }
 
     /**
-     * @param  TrackablePerson&Model  $user
+     * @param  Authenticatable&Model  $user
      */
-    public function trackLogin(TrackablePerson $user): void
+    public function trackLogin(Authenticatable $user): void
     {
         $trackingData = $this->getSessionTracking();
 
         $payload = [
-            'user_id' => $user->getKey(),
-            'user_time' => $this->getTime($user->getTrackingTime()),
+            'user_id' => $user->getAuthIdentifier(),
+            'user_time' => $this->getTime(now()),
             'ip' => $trackingData['ip'] ?? null,
             'user_agent' => $trackingData['user_agent'] ?? null,
             'time' => $this->getTime(now()),
