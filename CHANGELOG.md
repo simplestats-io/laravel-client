@@ -2,6 +2,14 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.5.1 - 2026-03-19
+
+### What's changed
+
+* only track logins from trackable persons
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.5.0...v3.5.1
+
 ## v3.5.0 - 2026-03-18
 
 ### What's Changed
