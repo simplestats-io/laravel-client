@@ -14,7 +14,10 @@ class UserLoginListener
      */
     public function handle(Login $event): void
     {
-        /** @var TrackablePerson $user */
+        if (! $event->user instanceof TrackablePerson) {
+            return;
+        }
+
         $user = $event->user;
 
         if ($user instanceof TrackablePersonWithCondition) {

@@ -216,6 +216,28 @@ it('sends an api request if a new visitor payments condition gets fulfilled', fu
     }));
 });
 
+it('does not throw when a non-trackable user logs in', function () {
+    $nonTrackableUser = new class extends \Illuminate\Foundation\Auth\User
+    {
+        protected $guarded = [];
+
+        protected $table = 'users';
+    };
+
+    $nonTrackableUser->forceFill([
+        'id' => 999,
+        'email' => 'statamic@example.com',
+        'password' => bcrypt('password'),
+    ]);
+
+    $loginEvent = config('simplestats-client.tracking_types.login.event');
+    event(new $loginEvent('web', $nonTrackableUser, false));
+
+    assertAfterDefer(fn () => Http::assertNotSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-login';
+    }));
+});
+
 /**
  * CUSTOM EVENT
  */
