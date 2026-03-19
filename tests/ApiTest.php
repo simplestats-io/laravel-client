@@ -217,7 +217,7 @@ it('sends an api request if a new visitor payments condition gets fulfilled', fu
 });
 
 it('does not throw when a non-trackable user logs in', function () {
-    $nonTrackableUser = new class extends \Illuminate\Foundation\Auth\User
+    $nonTrackableUser = new class extends Illuminate\Foundation\Auth\User
     {
         protected $guarded = [];
 
