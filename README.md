@@ -10,7 +10,7 @@ This is the official Laravel client to send tracking data to [https://simplestat
 
 ## Introduction
 
-_**SimpleStats**_ is a streamlined analytics tool tailored for **Laravel** applications, transcending mere counts of views and visits. It offers **precise insights** into user origins and behaviors. With default tracking and filtering via [UTM](https://en.wikipedia.org/wiki/UTM_parameters) codes, you gain detailed analysis of **marketing** campaigns, identifying which efforts drive **revenue**. Effortlessly evaluate campaign **ROI**, discover cost-effective user acquisition channels, and pinpoint the most effective performance channels. _SimpleStats_ ensures full **GDPR compliance** and a minimalistic and straightforward installation process.
+_**SimpleStats**_ is **analytics for Laravel**. Track **visitors**, **registrations**, and **payments**. Discover which channels actually drive **revenue**, not just traffic. With server-side tracking and filtering via [UTM](https://en.wikipedia.org/wiki/UTM_parameters) codes, you get detailed analysis of **marketing** efforts and clearly see which channels drive **revenue**. Effortlessly evaluate **ROI**, identify cost-effective user acquisition channels, and pinpoint the most effective performance channels. _SimpleStats_ is fully **GDPR compliant**, **ad-blocker proof**, and ships with a minimalistic, straightforward installation process.
 
 ![screenshot](https://simplestats.io/images/screenshot.png)
 

@@ -1,10 +1,15 @@
 {
     "name": "simplestats-io/laravel-client",
-    "description": "Client for SimpleStats!",
+    "description": "Analytics for Laravel. Track visitors, registrations, and payments. Discover which channels actually drive revenue, not just traffic. Server-side, GDPR compliant, ad-blocker proof.",
     "keywords": [
         "simplestats-io",
         "laravel",
-        "simplestats-client"
+        "simplestats-client",
+        "analytics",
+        "revenue-attribution",
+        "marketing-attribution",
+        "gdpr",
+        "server-side-tracking"
     ],
     "homepage": "https://github.com/simplestats-io/laravel-client",
     "license": "MIT",
