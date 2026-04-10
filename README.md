@@ -51,6 +51,7 @@ return [
     'except' => [
         'telescope*',
         'horizon*',
+        'pulse*',
         'admin*',
         'api*',
     ],
