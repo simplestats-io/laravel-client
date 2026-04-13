@@ -53,15 +53,39 @@ class SendApiRequest implements ShouldQueue
         $attempt = $this->attempts();
 
         if ($attempt >= $this->tries) {
-            Log::warning('SimpleStats API request failed after all retries.', [
-                'route' => $this->route,
-                'status' => $response ? $response->status() : null,
-            ]);
+            $this->logFinalFailure($response);
             $this->delete();
 
             return;
         }
 
+        if ($response && config('simplestats-client.log_errors')) {
+            $this->logError($response, $attempt);
+        }
+
+        $this->releaseWithBackoff($attempt);
+    }
+
+    protected function logFinalFailure($response): void
+    {
+        Log::warning('SimpleStats API request failed after all retries.', [
+            'route' => $this->route,
+            'status' => $response ? $response->status() : null,
+        ]);
+    }
+
+    protected function logError($response, int $attempt): void
+    {
+        Log::error('SimpleStats API request failed.', [
+            'route' => $this->route,
+            'status' => $response->status(),
+            'body' => $response->json() ?? $response->body(),
+            'attempt' => $attempt,
+        ]);
+    }
+
+    protected function releaseWithBackoff(int $attempt): void
+    {
         $backoffIndex = min($attempt - 1, count($this->backoff) - 1);
         $this->release($this->backoff[$backoffIndex]);
     }

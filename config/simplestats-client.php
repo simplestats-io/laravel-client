@@ -71,6 +71,19 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | SimpleStats Log Errors
+     |--------------------------------------------------------------------------
+     |
+     | When enabled, the client will log API error responses (4xx, 5xx) to your
+     | application log on every failed attempt. Transient errors like connection
+     | timeouts are only logged on the final retry attempt.
+     |
+     */
+
+    'log_errors' => env('SIMPLESTATS_LOG_ERRORS', false),
+
+    /*
+     |--------------------------------------------------------------------------
      | SimpleStats Tracking Codes
      |--------------------------------------------------------------------------
      |
