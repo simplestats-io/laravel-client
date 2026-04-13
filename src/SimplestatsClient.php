@@ -44,8 +44,8 @@ class SimplestatsClient
         $trackingData = $this->getSessionTracking();
 
         $payload = [
-            'user_id' => $user->getKey(),
-            'user_time' => $this->getTime($user->getTrackingTime()),
+            'stats_user_id' => $user->getKey(),
+            'stats_user_time' => $this->getTime($user->getTrackingTime()),
             'ip' => $trackingData['ip'] ?? null,
             'user_agent' => $trackingData['user_agent'] ?? null,
             'time' => $this->getTime(now()),
@@ -98,8 +98,8 @@ class SimplestatsClient
         $trackingPerson = $payment->getTrackingPerson();
 
         if ($trackingPerson instanceof $userModel) {
-            $payload['user_id'] = $trackingPerson->getKey();
-            $payload['user_time'] = $this->getTime($trackingPerson->getTrackingTime());
+            $payload['stats_user_id'] = $trackingPerson->getKey();
+            $payload['stats_user_time'] = $this->getTime($trackingPerson->getTrackingTime());
         } else {
             $payload['visitor_hash'] = $trackingPerson->getKey();
         }
