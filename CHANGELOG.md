@@ -2,6 +2,15 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.5.2 - 2026-04-13
+
+### What's Changed
+
+* payload naming fix
+* Bump dependabot/fetch-metadata from 2.5.0 to 3.0.0 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/31
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.5.1...v3.5.2
+
 ## v3.5.1 - 2026-03-19
 
 ### What's changed
