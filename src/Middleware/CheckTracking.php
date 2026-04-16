@@ -11,7 +11,12 @@ use SimpleStatsIo\LaravelClient\Visitor;
 
 class CheckTracking
 {
-    public function __construct(protected CrawlerDetect $crawlerDetect) {}
+    protected CrawlerDetect $crawlerDetect;
+
+    public function __construct(CrawlerDetect $crawlerDetect)
+    {
+        $this->crawlerDetect = $crawlerDetect;
+    }
 
     public function handle(Request $request, Closure $next)
     {
