@@ -1,7 +1,6 @@
 <?php
 
 use Faker\Factory;
-use hisorange\BrowserDetect\ServiceProvider as BrowserDetectServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Http;
@@ -47,7 +46,6 @@ beforeEach(function () {
     config(['simplestats-client.tracking_types.user.model' => User::class]);
     // boot again to update the observers...
     app()->getProvider(SimplestatsClientServiceProvider::class)->boot();
-    app()->register(BrowserDetectServiceProvider::class);
 
     $this->faker = Factory::create();
 });

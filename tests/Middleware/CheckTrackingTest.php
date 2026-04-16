@@ -1,15 +1,10 @@
 <?php
 
-use hisorange\BrowserDetect\ServiceProvider as BrowserDetectServiceProvider;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 
 use function Pest\Laravel\get;
-
-beforeEach(function () {
-    $this->app->register(BrowserDetectServiceProvider::class);
-});
 
 it('handles referer', function ($referer, $expected) {
     Http::fake();
