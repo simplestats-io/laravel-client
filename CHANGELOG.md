@@ -2,6 +2,13 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.5.3 - 2026-04-16
+
+### What's changed
+
+* replaced hisorange/browser-detect with jaybizzle/crawler-detect to fix Laravel 13's serializable_classes => false default
+  **Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.5.2...v3.5.3
+
 ## v3.5.2 - 2026-04-13
 
 ### What's Changed
