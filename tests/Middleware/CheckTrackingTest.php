@@ -31,6 +31,17 @@ it('does not track bots', function () {
         ->assertOk();
 });
 
+it('does not track requests without a user agent', function () {
+    Http::fake();
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    $this->call('GET', '/test', [], [], [], ['HTTP_USER_AGENT' => null])
+        ->assertSessionMissing('simplestats.tracking')
+        ->assertOk();
+
+    Http::assertNothingSent();
+});
+
 it('uses public IP from request->ip() directly', function () {
     Http::fake();
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);

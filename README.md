@@ -155,6 +155,10 @@ return [
 ];
 ```
 
+## Bot Detection
+
+Bot and crawler traffic is **filtered out automatically** before any tracking happens. A request is skipped when it has no User-Agent string, or when the User-Agent matches a known crawler signature via [jaybizzle/crawler-detect](https://github.com/JayBizzle/Crawler-Detect). This is enabled by default and requires no configuration.
+
 ## Documentation
 
 Check out the full documentation here: [Official SimpleStats.io Documentation](https://simplestats.io/docs)
