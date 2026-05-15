@@ -3,21 +3,14 @@
 namespace SimpleStatsIo\LaravelClient\Middleware;
 
 use Closure;
+use DeviceDetector\DeviceDetector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Jaybizzle\CrawlerDetect\CrawlerDetect;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\Visitor;
 
 class CheckTracking
 {
-    protected CrawlerDetect $crawlerDetect;
-
-    public function __construct(CrawlerDetect $crawlerDetect)
-    {
-        $this->crawlerDetect = $crawlerDetect;
-    }
-
     public function handle(Request $request, Closure $next)
     {
         $ip = $this->resolveIp($request);
@@ -82,7 +75,16 @@ class CheckTracking
             && ! $this->inExceptArray($request)
             && ! $this->isBlockedIp($ip)
             && is_string($request->userAgent())
-            && ! $this->crawlerDetect->isCrawler($request->userAgent());
+            && ! $this->isBot($request->userAgent());
+    }
+
+    protected function isBot(string $userAgent): bool
+    {
+        $detector = new DeviceDetector($userAgent);
+        $detector->discardBotInformation();
+        $detector->parse();
+
+        return $detector->isBot();
     }
 
     protected function resolveIp(Request $request): ?string
