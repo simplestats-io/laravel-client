@@ -84,7 +84,15 @@ class CheckTracking
         $detector->discardBotInformation();
         $detector->parse();
 
-        return $detector->isBot();
+        if ($detector->isBot()) {
+            return true;
+        }
+
+        // Real visitors come from browsers or mobile apps. Treat HTTP libraries
+        // (curl, python-requests, Go-http-client, ...), feed readers, media
+        // players, and PIM clients (email apps) as bot-like, as they almost
+        // always represent automated/scripted traffic in a web analytics context.
+        return ! $detector->isBrowser() && ! $detector->isMobileApp();
     }
 
     protected function resolveIp(Request $request): ?string
