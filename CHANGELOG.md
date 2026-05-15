@@ -2,6 +2,15 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.5.4 - 2026-05-15
+
+### What's Changed
+
+* new bot detection
+* Bump dependabot/fetch-metadata from 3.0.0 to 3.1.0 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/32
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.5.3...v3.5.4
+
 ## v3.5.3 - 2026-04-16
 
 ### What's changed
