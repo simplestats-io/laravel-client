@@ -2,6 +2,14 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v3.5.5 - 2026-05-15
+
+### What's changed
+
+* improved bot detection
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.5.4...v3.5.5
+
 ## v3.5.4 - 2026-05-15
 
 ### What's Changed
