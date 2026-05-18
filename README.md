@@ -4,6 +4,7 @@
 [![Tests](https://github.com/simplestats-io/laravel-client/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/simplestats-io/laravel-client/actions/workflows/run-tests.yml)
 [![Check & fix styling](https://github.com/simplestats-io/laravel-client/actions/workflows/fix-php-code-style-issues.yml/badge.svg?branch=main)](https://github.com/simplestats-io/laravel-client/actions/workflows/fix-php-code-style-issues.yml)
 [![License](https://img.shields.io/packagist/l/simplestats-io/laravel-client.svg?style=flat-square)](https://packagist.org/packages/simplestats-io/laravel-client)
+[![Laravel Compatibility](https://badge.laravel.cloud/badge/simplestats-io/laravel-client)](https://packagist.org/packages/simplestats-io/laravel-client)
 <!--[![Total Downloads](https://img.shields.io/packagist/dt/simplestats-io/laravel-client.svg?style=flat-square)](https://packagist.org/packages/simplestats-io/laravel-client)-->
 
 This is the official Laravel client to send tracking data to [https://simplestats.io](https://simplestats.io)
