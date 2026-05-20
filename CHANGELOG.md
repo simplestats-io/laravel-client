@@ -2,6 +2,31 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v4.0.0 - 2026-05-20
+
+### What's changed
+
+* Added `tracking_storage` config option to support stateless / headless setups (SPAs on a separate domain, mobile apps, JWT or Sanctum token APIs). Choose between `session` (default, classic behavior) and `cache` (visitor identified by a daily IP + User-Agent hash, no session cookie required).
+* Added `middleware_groups` config option to control which Laravel middleware groups the `CheckTracking` middleware is appended to (`web`, `api`, or both).
+* Removed `api*` from the default `except` array so API routes can be tracked when explicitly opted in via `middleware_groups`.
+* Added `SimplestatsClient::getVisitorHash()` and `setVisitorHash()` for custom visitor lookups.
+* Dropped support for Laravel 8, 9, 10 and PHP < 8.2. Use the `v3.x` line for those versions.
+
+#### Migration Guide
+
+If you are on Laravel 11+ / PHP 8.2+ and run a classic Blade, Inertia or Livewire app, upgrading to v4 is a no-op. The defaults match the previous behavior.
+
+For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
+
+```php
+'middleware_groups' => ['api'],
+'tracking_storage' => 'cache',
+
+```
+See the [Headless, SPA & Stateless Backends docs](https://simplestats.io/docs/headless-stateless-spa.html) for the full walkthrough.
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v3.5.5...v4.0.0
+
 ## v3.5.5 - 2026-05-15
 
 ### What's changed
