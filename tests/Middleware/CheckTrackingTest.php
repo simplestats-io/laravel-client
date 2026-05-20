@@ -8,6 +8,11 @@ use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use function Pest\Laravel\get;
 
 beforeEach(function () {
+    // $_SERVER persists across tests in Pest; explicitly clear so a value
+    // set by an earlier test cannot leak into the next via getReferer()'s
+    // HTTP_REFERER fallback.
+    unset($_SERVER['HTTP_REFERER']);
+
     $this->apiUrl = config('simplestats-client.api_url');
 
     Http::fake([
