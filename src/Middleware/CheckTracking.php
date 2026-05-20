@@ -7,22 +7,36 @@ use DeviceDetector\DeviceDetector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
+use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
 use SimpleStatsIo\LaravelClient\Visitor;
 
 class CheckTracking
 {
+    public function __construct(
+        protected TrackingStorage $trackingStorage
+    ) {}
+
     public function handle(Request $request, Closure $next)
     {
         $ip = $this->resolveIp($request);
+        $userAgent = $request->userAgent();
 
-        if (! $this->doTracking($request, $ip)) {
+        $visitorHash = SimplestatsClient::createVisitorHash(now(), $ip, $userAgent);
+
+        SimplestatsClient::setVisitorHash($visitorHash);
+
+        if (! $this->doTracking($request, $ip, $visitorHash)) {
             return $next($request);
         }
 
         $collectedTrackingData = collect(config('simplestats-client.tracking_codes'))->mapWithKeys(
             function ($params, $key) use ($request) {
                 foreach ($params as $param) {
-                    if ($value = $request->input($param)) {
+                    $value = $request->input($param)
+                        ?? $request->header($param)
+                        ?? $request->header('x-'.$param);
+
+                    if (! empty($value)) {
                         return [$key => $value];
                     }
                 }
@@ -30,34 +44,40 @@ class CheckTracking
                 return [$key => null];
             });
 
-        // remove empty/null items...
         $cleanedTrackingData = $collectedTrackingData->filter();
 
-        $userAgent = ($request->userAgent()) ? urlencode($request->userAgent()) : null;
-        $referer = $this->getReferer();
-        $path = $request->getPathInfo();
+        $referer = $this->getReferer($request);
+        $page = $this->getPage($request);
 
         $cleanedTrackingData->put('ip', $ip);
         $cleanedTrackingData->put('referer', (! empty($referer)) ? $referer : null);
-        $cleanedTrackingData->put('page', (! empty($path)) ? $path : null);
-        $cleanedTrackingData->put('user_agent', $userAgent);
+        $cleanedTrackingData->put('page', (! empty($page)) ? $page : null);
+        $cleanedTrackingData->put('user_agent', $userAgent ? urlencode($userAgent) : null);
 
-        session()->put(['simplestats.tracking' => $cleanedTrackingData]);
+        $this->trackingStorage->put($visitorHash, $cleanedTrackingData);
 
-        $this->trackVisitor($ip, $userAgent);
+        SimplestatsClient::trackVisitor(new Visitor($visitorHash));
 
         return $next($request);
     }
 
-    protected function getReferer(): string
+    protected function getReferer(Request $request): string
     {
-        if (empty($_SERVER['HTTP_REFERER'])) {
+        // Explicit value (headless / SPA setups forward the original document.referrer).
+        // Uses dedicated names that do NOT collide with the `referer`/`referrer`
+        // aliases configured for `tracking_codes.source`.
+        $rawReferer = $request->input('document_referer')
+            ?? $request->header('X-Document-Referer')
+            ?? $_SERVER['HTTP_REFERER']
+            ?? '';
+
+        if (empty($rawReferer)) {
             return '';
         }
 
         // referer always without www and make sure referes like http://foo.de, https://foo.de, foo.de and www.foo.de are working
-        $referer = Str::replaceFirst('www.', '', parse_url($_SERVER['HTTP_REFERER'])['host']
-            ?? parse_url('https://'.$_SERVER['HTTP_REFERER'])['host']
+        $referer = Str::replaceFirst('www.', '', parse_url($rawReferer)['host']
+            ?? parse_url('https://'.$rawReferer)['host']
             ?? '');
 
         // do not track the app url as a own referer, if that happens...
@@ -68,9 +88,18 @@ class CheckTracking
         return '';
     }
 
-    protected function doTracking(Request $request, ?string $ip): bool
+    protected function getPage(Request $request): string
     {
-        return empty(session()->get('simplestats.tracking'))
+        // Explicit value (headless / SPA setups forward the actual page path the
+        // visitor landed on, since the API request path itself is not meaningful).
+        return $request->input('page')
+            ?? $request->header('X-Page')
+            ?? $request->getPathInfo();
+    }
+
+    protected function doTracking(Request $request, ?string $ip, string $visitorHash): bool
+    {
+        return ! $this->trackingStorage->has($visitorHash)
             && $request->isMethod('get')
             && ! $this->inExceptArray($request)
             && ! $this->isBlockedIp($ip)
@@ -210,15 +239,5 @@ class CheckTracking
         }
 
         return false;
-    }
-
-    public function trackVisitor(?string $ip, ?string $userAgent): void
-    {
-        $visitorTime = SimplestatsClient::getTime(now());
-        $visitorHash = SimplestatsClient::createVisitorHash($visitorTime, $ip, $userAgent);
-
-        session()->put('simplestats.visitor_hash', $visitorHash);
-
-        SimplestatsClient::trackVisitor(new Visitor($visitorHash));
     }
 }

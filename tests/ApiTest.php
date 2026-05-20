@@ -43,6 +43,7 @@ beforeEach(function () {
     ]);
 
     config(['simplestats-client.api_token' => 'foo']);
+    config(['simplestats-client.tracking_storage' => 'cache']);
     config(['simplestats-client.tracking_types.user.model' => User::class]);
     // boot again to update the observers...
     app()->getProvider(SimplestatsClientServiceProvider::class)->boot();
@@ -179,7 +180,7 @@ it('sends an api request if a new visitor payment gets created', function () {
     get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36']);
 
     VisitorPayment::create([
-        'visitor_hash' => session('simplestats.visitor_hash'),
+        'visitor_hash' => app(SimplestatsClient::class)->getVisitorHash(),
     ]);
 
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
@@ -198,7 +199,7 @@ it('sends an api request if a new visitor payments condition gets fulfilled', fu
     get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36']);
 
     $conditionalPayment = VisitorPaymentWithCondition::create([
-        'visitor_hash' => session('simplestats.visitor_hash'),
+        'visitor_hash' => app(SimplestatsClient::class)->getVisitorHash(),
     ]);
 
     assertAfterDefer(fn () => Http::assertNotSent(function ($request) {

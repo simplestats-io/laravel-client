@@ -7,17 +7,31 @@ use Carbon\CarbonInterface;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Context;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
+use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
 
 class SimplestatsClient
 {
     const TIME_FORMAT = 'Y-m-d H:i:s P';
 
+    protected const CONTEXT_KEY_VISITOR_HASH = 'simplestats.visitor_hash';
+
+    public function getVisitorHash(): ?string
+    {
+        return Context::get(self::CONTEXT_KEY_VISITOR_HASH);
+    }
+
+    public function setVisitorHash(string $visitorHash): void
+    {
+        Context::add(self::CONTEXT_KEY_VISITOR_HASH, $visitorHash);
+    }
+
     public function trackVisitor(TrackablePerson $visitor): void
     {
-        $trackingData = $this->getSessionTracking();
+        $trackingData = $this->getTrackingData();
 
         $payload = [
             'visitor_hash' => $visitor->getKey(),
@@ -41,7 +55,7 @@ class SimplestatsClient
      */
     public function trackLogin(TrackablePerson $user): void
     {
-        $trackingData = $this->getSessionTracking();
+        $trackingData = $this->getTrackingData();
 
         $payload = [
             'stats_user_id' => $user->getKey(),
@@ -59,7 +73,7 @@ class SimplestatsClient
      */
     public function trackUser(TrackablePerson $user, bool $addLogin = false): void
     {
-        $trackingData = $this->getSessionTracking();
+        $trackingData = $this->getTrackingData();
 
         $payload = [
             'id' => $user->getKey(),
@@ -127,9 +141,9 @@ class SimplestatsClient
         safeDefer(fn () => SendApiRequest::dispatch('stats-custom-event', $payload));
     }
 
-    protected function getSessionTracking(): Collection
+    protected function getTrackingData(): Collection
     {
-        return session('simplestats.tracking') ?? collect();
+        return app(TrackingStorage::class)->get($this->getVisitorHash());
     }
 
     public function getTime(CarbonInterface $time): string

@@ -22,7 +22,6 @@ return [
         'horizon*',
         'pulse*',
         'admin*',
-        'api*',
     ],
 
     /*
@@ -81,6 +80,45 @@ return [
      */
 
     'log_errors' => env('SIMPLESTATS_LOG_ERRORS', false),
+
+    /*
+     |--------------------------------------------------------------------------
+     | SimpleStats Middleware Groups
+     |--------------------------------------------------------------------------
+     |
+     | Which middleware group(s) the CheckTracking middleware is appended to.
+     | Pick what matches your setup:
+     |
+     | - ['web']         : classic server-rendered apps (Blade, Inertia, Livewire)
+     | - ['api']         : headless / SPA frontends that only ever hit your API
+     | - ['web', 'api']  : hybrid setups (e.g. Blade marketing + SPA dashboard)
+     |
+     */
+
+    'middleware_groups' => ['web'],
+
+    /*
+     |--------------------------------------------------------------------------
+     | SimpleStats Tracking Storage
+     |--------------------------------------------------------------------------
+     |
+     | Where to persist a visitor's attribution (UTMs, referer, entry page) so
+     | it survives across requests in the same day.
+     |
+     | - 'session' (default): stores the data in the user's session. Requires a
+     |   session cookie and works only in classic, session-bound Laravel apps.
+     |   Survives mobile IP changes because the cookie identifies the user.
+     |
+     | - 'cache': stores the data in Laravel's cache keyed by a daily hash of
+     |   IP + User-Agent. Works in stateless / headless setups (JWT, SPA on a
+     |   separate domain) where no session cookie is available. Loses precision
+     |   when the visitor's IP changes (mobile network switches), which is the
+     |   same trade-off privacy-first tools like Plausible and Fathom make to
+     |   stay cookie- and consent-free.
+     |
+     */
+
+    'tracking_storage' => 'session',
 
     /*
      |--------------------------------------------------------------------------

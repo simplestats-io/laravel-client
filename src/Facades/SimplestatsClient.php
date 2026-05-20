@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static void trackUser(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user, bool $addLogin = false)
  * @method static void trackPayment(\SimpleStatsIo\LaravelClient\Contracts\TrackablePayment $payment)
  * @method static void trackCustomEvent(string $id, string $name, \SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user)
+ * @method static string|null getVisitorHash()
+ * @method static void setVisitorHash(string $visitorHash)
  *
  * @see \SimpleStatsIo\LaravelClient\SimplestatsClient
  */
