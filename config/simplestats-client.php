@@ -132,7 +132,7 @@ return [
      */
 
     'tracking_codes' => [
-        'source' => ['utm_source', 'ref', 'referer', 'referrer'],
+        'source' => ['utm_source', 'ref'],
         'medium' => ['utm_medium', 'adGroup', 'adGroupId'],
         'campaign' => ['utm_campaign'],
         'term' => ['utm_term'],

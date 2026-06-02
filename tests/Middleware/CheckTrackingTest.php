@@ -8,11 +8,6 @@ use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use function Pest\Laravel\get;
 
 beforeEach(function () {
-    // $_SERVER persists across tests in Pest; explicitly clear so a value
-    // set by an earlier test cannot leak into the next via getReferer()'s
-    // HTTP_REFERER fallback.
-    unset($_SERVER['HTTP_REFERER']);
-
     $this->apiUrl = config('simplestats-client.api_url');
 
     Http::fake([
@@ -45,10 +40,10 @@ function assertVisitorTrackedWith(string $field, $expected, string $apiUrl): voi
 it('handles referer', function ($referer, $expected) {
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
 
-    $_SERVER['HTTP_REFERER'] = $referer;
-
-    get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'])
-        ->assertOk();
+    get('/test', [
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'referer' => $referer,
+    ])->assertOk();
 
     assertVisitorTrackedWith('track_referer', $expected, $this->apiUrl);
 })->with([
@@ -252,20 +247,17 @@ it('reads tracking codes from headers', function () {
     assertVisitorTrackedWith('track_source', 'twitter', $this->apiUrl);
 });
 
-it('reads referer from X-Document-Referer header, overriding $_SERVER[HTTP_REFERER]', function () {
+it('reads referer from X-Document-Referer header, overriding the standard Referer header', function () {
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
-
-    $_SERVER['HTTP_REFERER'] = 'https://wrong.test';
 
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'referer' => 'https://wrong.test',
         'HTTP_X_DOCUMENT_REFERER' => 'https://google.com',
     ])->assertOk();
 
     assertVisitorTrackedWith('track_referer', 'google.com', $this->apiUrl);
-
-    unset($_SERVER['HTTP_REFERER']);
 });
 
 it('reads referer from document_referer query parameter', function () {
@@ -279,16 +271,121 @@ it('reads referer from document_referer query parameter', function () {
     assertVisitorTrackedWith('track_referer', 'google.com', $this->apiUrl);
 });
 
-it('does not bleed a `referer` query param into the document referer (source-alias only)', function () {
+it('ignores `referer`/`referrer` query params entirely (neither source nor referer)', function () {
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
 
-    get('/test?referer=newsletter', [
+    // The referer is the real document referrer (HTTP header / explicit forward), not a
+    // URL query param. `referer`/`referrer` query params are not configured source
+    // aliases either, so they must be dropped completely.
+    get('/test?referer=newsletter&referrer='.urlencode('https://news.ycombinator.com'), [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('track_source', null, $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
+});
+
+it('never reads a standard HTTP header into a source, even when aliased in the config', function () {
+    config(['simplestats-client.tracking_codes.source' => ['utm_source', 'ref', 'referer']]);
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    // Even with `referer` mis-aliased as a source, the bare HTTP Referer header must not
+    // leak into the source. It only feeds the dedicated referer field.
+    get('/test', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'referer' => 'https://news.ycombinator.com',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('track_source', null, $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', 'news.ycombinator.com', $this->apiUrl);
+});
+
+it('keeps a `ref` query param as a campaign source', function () {
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    // `ref` stays a source alias: a non-domain value like a campaign tag must remain
+    // a source and must not be recorded as a referer.
+    get('/test?ref=newsletter', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
     ])->assertOk();
 
     assertVisitorTrackedWith('track_source', 'newsletter', $this->apiUrl);
     assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
+});
+
+it('records an external HTTP Referer header as the referer, never as the source', function () {
+    Route::get('/dashboard', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    // A real browser sends the Referer header. It must feed the referer field (handled
+    // by getReferer()) and never be recorded as a traffic source.
+    get('/dashboard', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'referer' => 'https://news.ycombinator.com/item?id=1',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('track_referer', 'news.ycombinator.com', $this->apiUrl);
+    assertVisitorTrackedWith('track_source', null, $this->apiUrl);
+});
+
+it('filters the app own domain sent via the explicit document referer', function () {
+    config(['app.url' => 'https://my-app.test']);
+    Route::get('/dashboard', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/dashboard?document_referer='.urlencode('https://my-app.test/login'), [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
+});
+
+it('does not record the app own domain (from the HTTP Referer header) as a source', function () {
+    config(['app.url' => 'https://my-app.test']);
+    Route::get('/dashboard', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    // Session expired + in-app click: the browser sends the app's own URL as Referer.
+    get('/dashboard', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'referer' => 'https://my-app.test/login',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('track_source', null, $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
+});
+
+it('does not treat an unrelated host that merely shares a substring as the own domain', function () {
+    config(['app.url' => 'https://your-app.test']);
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    // `app.test` is a substring of `your-app.test` but a different domain; the referer
+    // must be tracked, not dropped as the own domain.
+    get('/test', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'referer' => 'https://app.test',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('track_referer', 'app.test', $this->apiUrl);
+});
+
+it('keeps a subdomain of the app host as a referer (separate property)', function () {
+    config(['app.url' => 'https://my-app.test']);
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    // A subdomain like a landing page or docs site is a distinct property; traffic
+    // from it to the app is a real referer and must not be dropped as the own domain.
+    get('/test', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'referer' => 'https://account.my-app.test',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('track_referer', 'account.my-app.test', $this->apiUrl);
 });
 
 it('reads page from X-Page header, overriding the request path', function () {

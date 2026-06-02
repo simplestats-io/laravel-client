@@ -32,9 +32,7 @@ class CheckTracking
         $collectedTrackingData = collect(config('simplestats-client.tracking_codes'))->mapWithKeys(
             function ($params, $key) use ($request) {
                 foreach ($params as $param) {
-                    $value = $request->input($param)
-                        ?? $request->header($param)
-                        ?? $request->header('x-'.$param);
+                    $value = $request->input($param) ?? $request->header('x-'.$param);
 
                     if (! empty($value)) {
                         return [$key => $value];
@@ -46,12 +44,9 @@ class CheckTracking
 
         $cleanedTrackingData = $collectedTrackingData->filter();
 
-        $referer = $this->getReferer($request);
-        $page = $this->getPage($request);
-
         $cleanedTrackingData->put('ip', $ip);
-        $cleanedTrackingData->put('referer', (! empty($referer)) ? $referer : null);
-        $cleanedTrackingData->put('page', (! empty($page)) ? $page : null);
+        $cleanedTrackingData->put('referer', $this->getReferer($request));
+        $cleanedTrackingData->put('page', $this->getPage($request));
         $cleanedTrackingData->put('user_agent', $userAgent ? urlencode($userAgent) : null);
 
         $this->trackingStorage->put($visitorHash, $cleanedTrackingData);
@@ -61,40 +56,59 @@ class CheckTracking
         return $next($request);
     }
 
-    protected function getReferer(Request $request): string
+    protected function getReferer(Request $request): ?string
     {
-        // Explicit value (headless / SPA setups forward the original document.referrer).
-        // Uses dedicated names that do NOT collide with the `referer`/`referrer`
-        // aliases configured for `tracking_codes.source`.
         $rawReferer = $request->input('document_referer')
             ?? $request->header('X-Document-Referer')
-            ?? $_SERVER['HTTP_REFERER']
+            ?? $request->header('referer')
             ?? '';
 
-        if (empty($rawReferer)) {
-            return '';
-        }
+        $referer = $this->extractHost($rawReferer);
 
-        // referer always without www and make sure referes like http://foo.de, https://foo.de, foo.de and www.foo.de are working
-        $referer = Str::replaceFirst('www.', '', parse_url($rawReferer)['host']
-            ?? parse_url('https://'.$rawReferer)['host']
-            ?? '');
-
-        // do not track the app url as a own referer, if that happens...
-        if (! empty($referer) && ! Str::of(config('app.url'))->contains($referer)) {
+        if (! empty($referer) && ! $this->isOwnDomain($referer)) {
             return $referer;
         }
 
-        return '';
+        return null;
+    }
+
+    /**
+     * Reduce a url/host value to its bare, lowercased host without a leading "www.".
+     *
+     * Kept in sync with HasStatsTracking::normalizeHost() (SimpleStats backend) and
+     * TrackingData::extractHost() (php-client); update all three together.
+     */
+    protected function extractHost(?string $value): string
+    {
+        if (empty($value)) {
+            return '';
+        }
+
+        return Str::replaceFirst('www.', '', parse_url($value)['host']
+            ?? parse_url('https://'.$value)['host']
+            ?? '');
+    }
+
+    protected function isOwnDomain(?string $value): bool
+    {
+        $host = $this->extractHost($value);
+        $appHost = $this->extractHost(config('app.url'));
+
+        if (empty($host) || empty($appHost)) {
+            return false;
+        }
+
+        // Only the exact host counts as "own". A subdomain (asdf.my-app.com) may be a
+        // separate property (landing page, docs, status) whose traffic to the app is a
+        // legitimate referer, so it must not be dropped. www is already normalised away.
+        return $host === $appHost;
     }
 
     protected function getPage(Request $request): string
     {
-        // Explicit value (headless / SPA setups forward the actual page path the
-        // visitor landed on, since the API request path itself is not meaningful).
         return $request->input('page')
-            ?? $request->header('X-Page')
-            ?? $request->getPathInfo();
+            ?: $request->header('X-Page')
+            ?: $request->getPathInfo();
     }
 
     protected function doTracking(Request $request, ?string $ip, string $visitorHash): bool
