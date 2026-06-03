@@ -32,11 +32,17 @@ class UserObserver
     {
         if ($user instanceof TrackablePersonWithCondition) {
             if ($user->wasChanged($user->watchTrackingFields()) && $user->passTrackingCondition()) {
-                // If we use the TrackablePersonWithCondition, the first login, before the email is verified
-                // will not be counted, cause the email gets verified only after the successful login
-                // (after clicking on the verification link in the email). That's why we need to
-                // tell the api to also count a login here...
-                SimplestatsClient::trackUser($user, true);
+                // When the user meets the tracking condition within their own authenticated session
+                // (e.g. clicking the email verification link while already logged in), their sign-in
+                // happened before the condition was met and was therefore skipped by UserLoginListener.
+                // We recover that skipped login by also counting one here.
+                //
+                // When the condition is met before the user signs in (e.g. an SSO provider creates an
+                // already-verified user and logs them in afterwards), the subsequent Login event records
+                // the login, so adding one here would double-count it (see issue #250).
+                $addLogin = auth()->user()?->is($user) ?? false;
+
+                SimplestatsClient::trackUser($user, $addLogin);
             }
         }
     }
