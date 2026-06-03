@@ -2,6 +2,14 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v4.0.1 - 2026-06-02
+
+### What's changed
+
+* fix own domain referer bug
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v4.0.0...v4.0.1
+
 ## v4.0.0 - 2026-05-20
 
 ### What's changed
@@ -21,6 +29,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 ```
 See the [Headless, SPA & Stateless Backends docs](https://simplestats.io/docs/headless-stateless-spa.html) for the full walkthrough.
