@@ -260,7 +260,6 @@ it('lets resolved user properties win over inherited visitor properties', functi
     }));
 });
 
-
 /**
  * LOGIN
  */
@@ -433,6 +432,27 @@ it('sends an api request for a custom event with a visitor', function () {
             && $request['visitor_hash'] == 'abc123hash';
     }));
 });
+
+it('still accepts the legacy user named argument for a custom event', function () {
+    $user = User::create([
+        'email' => $this->faker->safeEmail(),
+        'password' => bcrypt('password'),
+    ]);
+
+    // the third argument was renamed from $user to $person, the legacy
+    // named-argument form must keep working
+    app(SimplestatsClient::class)->trackCustomEvent(id: 'evt-legacy', name: 'Button Clicked', user: $user);
+
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-custom-event'
+            && $request['name'] == 'Button Clicked'
+            && isset($request['stats_user_id']);
+    }));
+});
+
+it('throws when neither person nor user is passed to a custom event', function () {
+    app(SimplestatsClient::class)->trackCustomEvent('evt-x', 'No One');
+})->throws(InvalidArgumentException::class);
 
 it('does not send a custom event for a visitor that was never tracked', function () {
     Event::fake([CustomEventTracked::class]);

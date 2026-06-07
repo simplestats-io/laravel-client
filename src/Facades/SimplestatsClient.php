@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void trackLogin(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user)
  * @method static void trackUser(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user, bool $addLogin = false)
  * @method static void trackPayment(\SimpleStatsIo\LaravelClient\Contracts\TrackablePayment $payment)
- * @method static void trackCustomEvent(string $id, string $name, \SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $person)
+ * @method static void trackCustomEvent(string $id, string $name, ?\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $person = null, ?\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user = null)
  * @method static void trackCustomProperties(array $properties, \SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $person)
  * @method static string|null getVisitorHash()
  * @method static void setVisitorHash(string $visitorHash)

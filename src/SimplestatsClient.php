@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Context;
+use InvalidArgumentException;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
 use SimpleStatsIo\LaravelClient\Events\CustomEventTracked;
@@ -149,8 +150,23 @@ class SimplestatsClient
         safeDefer(fn () => SendApiRequest::dispatch('stats-payment', $payload));
     }
 
-    public function trackCustomEvent(string $id, string $name, TrackablePerson $person): void
+    /**
+     * The third argument was renamed from $user to $person. $user is kept as
+     * an optional alias so existing named-argument calls (user: ...) and the
+     * positional form both keep working.
+     *
+     * @deprecated The $user alias is kept for backwards compatibility only.
+     *             Drop it in the next breaking release and make $person a
+     *             required first-class argument again.
+     */
+    public function trackCustomEvent(string $id, string $name, ?TrackablePerson $person = null, ?TrackablePerson $user = null): void
     {
+        $person = $person ?? $user;
+
+        if ($person === null) {
+            throw new InvalidArgumentException('trackCustomEvent() requires a person (or user) to attribute the event to.');
+        }
+
         $payload = $this->applyPersonAttribution([
             'id' => $id,
             'name' => $name,
