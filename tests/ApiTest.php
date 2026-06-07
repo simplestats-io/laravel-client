@@ -260,7 +260,6 @@ it('lets resolved user properties win over inherited visitor properties', functi
     }));
 });
 
-
 /**
  * LOGIN
  */
