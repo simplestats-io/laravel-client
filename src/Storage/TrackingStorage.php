@@ -9,7 +9,10 @@ interface TrackingStorage
     public function put(string $identifier, mixed $data): void;
 
     /**
-     * @return Collection<string, string|null>
+     * Attribution values are strings, the inherited visitor properties live
+     * under the 'properties' key as a name => value array.
+     *
+     * @return Collection<string, mixed>
      */
     public function get(?string $identifier): Collection;
 

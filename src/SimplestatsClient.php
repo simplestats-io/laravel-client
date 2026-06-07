@@ -10,7 +10,14 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Context;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
+use SimpleStatsIo\LaravelClient\Events\CustomEventTracked;
+use SimpleStatsIo\LaravelClient\Events\CustomPropertiesTracked;
+use SimpleStatsIo\LaravelClient\Events\LoginTracked;
+use SimpleStatsIo\LaravelClient\Events\PaymentTracked;
+use SimpleStatsIo\LaravelClient\Events\UserTracked;
+use SimpleStatsIo\LaravelClient\Events\VisitorTracked;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
+use SimpleStatsIo\LaravelClient\Services\CustomPropertiesResolver;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
 
 class SimplestatsClient
@@ -29,6 +36,19 @@ class SimplestatsClient
         Context::add(self::CONTEXT_KEY_VISITOR_HASH, $visitorHash);
     }
 
+    /**
+     * Whether the visitor of the current visit was actually tracked. No storage
+     * entry means the CheckTracking middleware skipped this visit (bot, blocked
+     * IP, except route), so the API will never know this visitor hash and any
+     * request referencing it would only be dropped server-side. Storing
+     * properties for such a visitor would even prevent the middleware from
+     * tracking it later (see CheckTracking::doTracking()).
+     */
+    public function isTrackedVisitor(TrackablePerson $person): bool
+    {
+        return app(TrackingStorage::class)->has($person->getKey());
+    }
+
     public function trackVisitor(TrackablePerson $visitor): void
     {
         $trackingData = $this->getTrackingData();
@@ -44,8 +64,11 @@ class SimplestatsClient
             'track_term' => $trackingData['term'] ?? null,
             'track_content' => $trackingData['content'] ?? null,
             'page_entry' => $trackingData['page'] ?? null,
+            'properties' => $trackingData['properties'] ?? null,
             'time' => $this->getTime(now()),
         ];
+
+        event(new VisitorTracked($visitor, $payload));
 
         safeDefer(fn () => SendApiRequest::dispatch('stats-visitor', $payload));
     }
@@ -64,6 +87,8 @@ class SimplestatsClient
             'user_agent' => $trackingData['user_agent'] ?? null,
             'time' => $this->getTime(now()),
         ];
+
+        event(new LoginTracked($user, $payload));
 
         safeDefer(fn () => SendApiRequest::dispatch('stats-login', $payload));
     }
@@ -90,6 +115,17 @@ class SimplestatsClient
             'time' => $this->getTime($user->getTrackingTime()),
         ];
 
+        // Resolved user properties win over inherited visitor properties on
+        // name conflicts. array_replace instead of array_merge, so numeric
+        // property names (e.g. '2024') overwrite by name instead of being
+        // re-indexed and appended.
+        $payload['properties'] = array_replace(
+            $trackingData['properties'] ?? [],
+            app(CustomPropertiesResolver::class)->forUser($user),
+        );
+
+        event(new UserTracked($user, $payload));
+
         safeDefer(fn () => SendApiRequest::dispatch('stats-user', $payload));
     }
 
@@ -100,45 +136,85 @@ class SimplestatsClient
      */
     public function trackPayment(TrackablePayment $payment): void
     {
-        $payload = [
+        $payload = $this->applyPersonAttribution([
             'id' => $payment->getKey(),
             'gross' => $payment->getTrackingGross(),
             'net' => $payment->getTrackingNet(),
             'currency' => $payment->getTrackingCurrency(),
             'time' => $this->getTime($payment->getTrackingTime()),
-        ];
+        ], $payment->getTrackingPerson(), requireTrackedVisitor: false);
 
-        $userModel = config('simplestats-client.tracking_types.user.model');
-        $trackingPerson = $payment->getTrackingPerson();
-
-        if ($trackingPerson instanceof $userModel) {
-            $payload['stats_user_id'] = $trackingPerson->getKey();
-            $payload['stats_user_time'] = $this->getTime($trackingPerson->getTrackingTime());
-        } else {
-            $payload['visitor_hash'] = $trackingPerson->getKey();
-        }
+        event(new PaymentTracked($payment, $payload));
 
         safeDefer(fn () => SendApiRequest::dispatch('stats-payment', $payload));
     }
 
-    public function trackCustomEvent(string $id, string $name, TrackablePerson $user): void
+    public function trackCustomEvent(string $id, string $name, TrackablePerson $person): void
     {
-        $payload = [
+        $payload = $this->applyPersonAttribution([
             'id' => $id,
             'name' => $name,
             'time' => $this->getTime(now()),
-        ];
+        ], $person);
 
-        $userModel = config('simplestats-client.tracking_types.user.model');
-
-        if ($user instanceof $userModel) {
-            $payload['stats_user_id'] = $user->getKey();
-            $payload['stats_user_time'] = $this->getTime($user->getTrackingTime());
-        } else {
-            $payload['visitor_hash'] = $user->getKey();
+        // events for a never tracked visitor could never be attributed
+        if ($payload === null) {
+            return;
         }
 
+        event(new CustomEventTracked($id, $name, $person, $payload));
+
         safeDefer(fn () => SendApiRequest::dispatch('stats-custom-event', $payload));
+    }
+
+    /**
+     * @param  array<string, scalar|null>  $properties
+     */
+    public function trackCustomProperties(array $properties, TrackablePerson $person): void
+    {
+        $payload = $this->applyPersonAttribution([
+            'properties' => $properties,
+            'time' => $this->getTime(now()),
+        ], $person);
+
+        // nothing to send, store or inherit for a never tracked visitor
+        if ($payload === null) {
+            return;
+        }
+
+        // The StoreVisitorProperties listener persists visitor properties for
+        // the inheritance on sign-up (see trackUser()).
+        event(new CustomPropertiesTracked($properties, $person, $payload));
+
+        safeDefer(fn () => SendApiRequest::dispatch('stats-custom-properties', $payload));
+    }
+
+    /**
+     * Add the user vs. visitor attribution to the payload. With
+     * $requireTrackedVisitor, null is returned for a never tracked visitor
+     * (see isTrackedVisitor()) and callers must abort. trackPayment() opts
+     * out of that guard, payments are never dropped client-side.
+     *
+     * @return ($requireTrackedVisitor is true ? array|null : array)
+     */
+    protected function applyPersonAttribution(array $payload, TrackablePerson $person, bool $requireTrackedVisitor = true): ?array
+    {
+        $userModel = config('simplestats-client.tracking_types.user.model');
+
+        if ($person instanceof $userModel) {
+            $payload['stats_user_id'] = $person->getKey();
+            $payload['stats_user_time'] = $this->getTime($person->getTrackingTime());
+
+            return $payload;
+        }
+
+        if ($requireTrackedVisitor && ! $this->isTrackedVisitor($person)) {
+            return null;
+        }
+
+        $payload['visitor_hash'] = $person->getKey();
+
+        return $payload;
     }
 
     protected function getTrackingData(): Collection

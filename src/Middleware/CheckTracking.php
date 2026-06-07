@@ -7,13 +7,15 @@ use DeviceDetector\DeviceDetector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
+use SimpleStatsIo\LaravelClient\Services\CustomPropertiesResolver;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
 use SimpleStatsIo\LaravelClient\Visitor;
 
 class CheckTracking
 {
     public function __construct(
-        protected TrackingStorage $trackingStorage
+        protected TrackingStorage $trackingStorage,
+        protected CustomPropertiesResolver $customPropertiesResolver,
     ) {}
 
     public function handle(Request $request, Closure $next)
@@ -48,6 +50,7 @@ class CheckTracking
         $cleanedTrackingData->put('referer', $this->getReferer($request));
         $cleanedTrackingData->put('page', $this->getPage($request));
         $cleanedTrackingData->put('user_agent', $userAgent ? urlencode($userAgent) : null);
+        $cleanedTrackingData->put('properties', $this->customPropertiesResolver->forVisitor($request));
 
         $this->trackingStorage->put($visitorHash, $cleanedTrackingData);
 

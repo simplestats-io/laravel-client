@@ -6,6 +6,8 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use SimpleStatsIo\LaravelClient\Events\CustomPropertiesTracked;
+use SimpleStatsIo\LaravelClient\Listeners\StoreVisitorProperties;
 use SimpleStatsIo\LaravelClient\Listeners\UserLoginListener;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use SimpleStatsIo\LaravelClient\Observers\PaymentObserver;
@@ -94,6 +96,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
     protected function registerEvents(): void
     {
         Event::listen(config('simplestats-client.tracking_types.login.event'), [UserLoginListener::class, 'handle']);
+        Event::listen(CustomPropertiesTracked::class, StoreVisitorProperties::class);
     }
 
     protected function registerObservers(): void

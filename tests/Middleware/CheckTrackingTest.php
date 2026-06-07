@@ -4,6 +4,9 @@ use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
+use SimpleStatsIo\LaravelClient\Tests\Resolvers\AbTestPropertiesResolver;
+use SimpleStatsIo\LaravelClient\Tests\Resolvers\InvalidPropertiesResolver;
+use SimpleStatsIo\LaravelClient\Tests\Resolvers\ThrowingVisitorPropertiesResolver;
 
 use function Pest\Laravel\get;
 
@@ -429,6 +432,73 @@ it('dispatches trackVisitor only once per day per visitor', function () {
     flushDeferred();
 
     Http::assertSentCount(1);
+});
+
+it('sends resolved visitor properties within the visitor payload', function () {
+    config(['simplestats-client.custom_properties_resolvers.visitor' => AbTestPropertiesResolver::class]);
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])->assertOk();
+
+    flushDeferred();
+
+    Http::assertSent(function ($request) {
+        return $request->url() === $this->apiUrl.'stats-visitor'
+            && ($request->data()['properties']['ab_test'] ?? null) === 'B';
+    });
+});
+
+it('sends empty properties when no resolver is configured', function () {
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])->assertOk();
+
+    flushDeferred();
+
+    Http::assertSent(function ($request) {
+        return $request->url() === $this->apiUrl.'stats-visitor'
+            && empty($request->data()['properties']);
+    });
+});
+
+it('ignores a configured resolver that does not implement the contract', function () {
+    config(['simplestats-client.custom_properties_resolvers.visitor' => InvalidPropertiesResolver::class]);
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])->assertOk();
+
+    flushDeferred();
+
+    Http::assertSent(function ($request) {
+        return $request->url() === $this->apiUrl.'stats-visitor'
+            && empty($request->data()['properties']);
+    });
+});
+
+it('still tracks the visitor when the properties resolver throws', function () {
+    config(['simplestats-client.custom_properties_resolvers.visitor' => ThrowingVisitorPropertiesResolver::class]);
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])->assertOk();
+
+    flushDeferred();
+
+    Http::assertSent(function ($request) {
+        return $request->url() === $this->apiUrl.'stats-visitor'
+            && empty($request->data()['properties']);
+    });
 });
 
 it('falls back to session storage by default', function () {
