@@ -13,7 +13,7 @@ it('resolves user properties from the configured resolver', function () {
     config(['simplestats-client.custom_properties_resolvers.user' => UserPropertiesResolver::class]);
 
     expect(app(CustomPropertiesResolver::class)->forUser(new User))
-        ->toBe(['subscription' => 'pro', 'company' => 'Acme Inc']);
+        ->toBe(['ab_test' => 'B', 'company' => 'Acme Inc']);
 });
 
 it('resolves visitor properties from the configured resolver', function () {

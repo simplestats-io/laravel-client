@@ -142,6 +142,7 @@ class SimplestatsClient
             'gross' => $payment->getTrackingGross(),
             'net' => $payment->getTrackingNet(),
             'currency' => $payment->getTrackingCurrency(),
+            'recurring_interval' => $payment->getTrackingRecurringInterval()?->value,
             'time' => $this->getTime($payment->getTrackingTime()),
         ], $payment->getTrackingPerson(), requireTrackedVisitor: false);
 

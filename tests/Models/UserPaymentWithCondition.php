@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePaymentWithCondition;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
+use SimpleStatsIo\LaravelClient\Enums\PaymentInterval;
 
 class UserPaymentWithCondition extends Model implements TrackablePaymentWithCondition
 {
@@ -47,6 +48,11 @@ class UserPaymentWithCondition extends Model implements TrackablePaymentWithCond
     public function getTrackingCurrency(): string
     {
         return 'USD';
+    }
+
+    public function getTrackingRecurringInterval(): ?PaymentInterval
+    {
+        return PaymentInterval::Year;
     }
 
     public function user(): BelongsTo

@@ -179,8 +179,8 @@ return [
      |--------------------------------------------------------------------------
      |
      | Optionally set classes that resolve custom properties whenever a user
-     | or a visitor is tracked (e.g. a subscription plan or an A/B test
-     | variant). The resolved properties are sent along with the track itself.
+     | or a visitor is tracked (e.g. an A/B test variant). The resolved
+     | properties are sent along with the track itself.
      |
      | The user resolver must implement the ResolvesUserCustomProperties
      | contract, the visitor resolver the ResolvesVisitorCustomProperties

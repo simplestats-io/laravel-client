@@ -4,6 +4,7 @@ namespace SimpleStatsIo\LaravelClient\Contracts;
 
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Auth\User;
+use SimpleStatsIo\LaravelClient\Enums\PaymentInterval;
 use SimpleStatsIo\LaravelClient\Visitor;
 
 interface TrackablePayment
@@ -33,4 +34,9 @@ interface TrackablePayment
      * The ISO-4217 currency code of the payment.
      */
     public function getTrackingCurrency(): string;
+
+    /**
+     * The billing interval of a recurring payment, or null for a one-time payment.
+     */
+    public function getTrackingRecurringInterval(): ?PaymentInterval;
 }

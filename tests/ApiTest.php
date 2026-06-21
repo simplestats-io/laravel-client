@@ -118,7 +118,7 @@ it('includes resolved custom properties in the user payload', function () {
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-user'
             && $request->method() == 'POST'
-            && ($request['properties']['subscription'] ?? null) == 'pro'
+            && ($request['properties']['ab_test'] ?? null) == 'B'
             && ($request['properties']['company'] ?? null) == 'Acme Inc';
     }));
 });
@@ -144,13 +144,13 @@ it('sends an api request if properties get tracked for a user', function () {
         'password' => bcrypt('password'),
     ]);
 
-    app(SimplestatsClient::class)->trackCustomProperties(['subscription' => 'pro'], $user);
+    app(SimplestatsClient::class)->trackCustomProperties(['ab_test' => 'B'], $user);
 
     assertAfterDefer(fn () => Http::assertSent(function ($request) use ($user) {
         return $request->url() == $this->apiUrl.'stats-custom-properties'
             && $request->method() == 'POST'
             && $request['stats_user_id'] == $user->getKey()
-            && ($request['properties']['subscription'] ?? null) == 'pro';
+            && ($request['properties']['ab_test'] ?? null) == 'B';
     }));
 });
 
@@ -244,7 +244,7 @@ it('lets resolved user properties win over inherited visitor properties', functi
 
     app(SimplestatsClient::class)->setVisitorHash('visitor-hash-conflict');
     app(TrackingStorage::class)->put('visitor-hash-conflict', collect());
-    app(SimplestatsClient::class)->trackCustomProperties(['subscription' => 'free', 'ab_test' => 'B'], new Visitor('visitor-hash-conflict'));
+    app(SimplestatsClient::class)->trackCustomProperties(['ab_test' => 'A', 'landing_page' => 'pricing'], new Visitor('visitor-hash-conflict'));
 
     User::create([
         'email' => $this->faker->safeEmail(),
@@ -254,8 +254,8 @@ it('lets resolved user properties win over inherited visitor properties', functi
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-user'
             && $request->method() == 'POST'
-            && ($request['properties']['subscription'] ?? null) == 'pro'
             && ($request['properties']['ab_test'] ?? null) == 'B'
+            && ($request['properties']['landing_page'] ?? null) == 'pricing'
             && ($request['properties']['company'] ?? null) == 'Acme Inc';
     }));
 });
@@ -296,7 +296,9 @@ it('sends an api request if a new user payment gets created', function () {
     ]);
 
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
-        return $request->url() == $this->apiUrl.'stats-payment' && $request->method() == 'POST';
+        return $request->url() == $this->apiUrl.'stats-payment'
+            && $request->method() == 'POST'
+            && $request['recurring_interval'] === 'month';
     }));
 });
 
@@ -346,7 +348,9 @@ it('sends an api request if a new visitor payment gets created', function () {
     ]);
 
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
-        return $request->url() == $this->apiUrl.'stats-payment' && $request->method() == 'POST';
+        return $request->url() == $this->apiUrl.'stats-payment'
+            && $request->method() == 'POST'
+            && $request['recurring_interval'] === null;
     }));
 });
 

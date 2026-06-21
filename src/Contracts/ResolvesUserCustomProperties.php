@@ -6,7 +6,7 @@ interface ResolvesUserCustomProperties
 {
     /**
      * Custom properties for a user that is being tracked right now, e.g.
-     * ['subscription' => 'pro', 'company' => 'Acme Inc'].
+     * ['ab_test' => 'B', 'company' => 'Acme Inc'].
      *
      * The class configured as custom_properties_resolvers.user is invoked
      * whenever the user is tracked. Keys are the property names (the grouping

@@ -10,7 +10,7 @@ class UserPropertiesResolver implements ResolvesUserCustomProperties
     public function resolve(TrackablePerson $user): array
     {
         return [
-            'subscription' => 'pro',
+            'ab_test' => 'B',
             'company' => 'Acme Inc',
         ];
     }

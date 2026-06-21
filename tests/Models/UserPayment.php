@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
+use SimpleStatsIo\LaravelClient\Enums\PaymentInterval;
 
 class UserPayment extends Model implements TrackablePayment
 {
@@ -37,6 +38,11 @@ class UserPayment extends Model implements TrackablePayment
     public function getTrackingCurrency(): string
     {
         return 'USD';
+    }
+
+    public function getTrackingRecurringInterval(): ?PaymentInterval
+    {
+        return PaymentInterval::Month;
     }
 
     public function user(): BelongsTo
