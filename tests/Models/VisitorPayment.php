@@ -6,7 +6,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePerson;
-use SimpleStatsIo\LaravelClient\Enums\PaymentInterval;
+use SimpleStatsIo\LaravelClient\Data\TrackingSubscription;
 use SimpleStatsIo\LaravelClient\Visitor;
 
 class VisitorPayment extends Model implements TrackablePayment
@@ -40,7 +40,7 @@ class VisitorPayment extends Model implements TrackablePayment
         return 'USD';
     }
 
-    public function getTrackingRecurringInterval(): ?PaymentInterval
+    public function getTrackingSubscription(): ?TrackingSubscription
     {
         return null;
     }

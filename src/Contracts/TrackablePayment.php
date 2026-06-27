@@ -4,7 +4,7 @@ namespace SimpleStatsIo\LaravelClient\Contracts;
 
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Auth\User;
-use SimpleStatsIo\LaravelClient\Enums\PaymentInterval;
+use SimpleStatsIo\LaravelClient\Data\TrackingSubscription;
 use SimpleStatsIo\LaravelClient\Visitor;
 
 interface TrackablePayment
@@ -36,7 +36,8 @@ interface TrackablePayment
     public function getTrackingCurrency(): string;
 
     /**
-     * The billing interval of a recurring payment, or null for a one-time payment.
+     * The subscription a recurring payment belongs to (plan and billing
+     * interval), or null for a one-time payment.
      */
-    public function getTrackingRecurringInterval(): ?PaymentInterval;
+    public function getTrackingSubscription(): ?TrackingSubscription;
 }

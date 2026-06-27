@@ -2,7 +2,7 @@
 
 namespace SimpleStatsIo\LaravelClient\Enums;
 
-enum PaymentInterval: string
+enum SubscriptionInterval: string
 {
     case Month = 'month';
     case Year = 'year';

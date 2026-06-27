@@ -298,7 +298,8 @@ it('sends an api request if a new user payment gets created', function () {
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-payment'
             && $request->method() == 'POST'
-            && $request['recurring_interval'] === 'month';
+            && $request['subscription_interval'] === 'month'
+            && $request['subscription_plan'] === 'pro';
     }));
 });
 
@@ -350,7 +351,8 @@ it('sends an api request if a new visitor payment gets created', function () {
     assertAfterDefer(fn () => Http::assertSent(function ($request) {
         return $request->url() == $this->apiUrl.'stats-payment'
             && $request->method() == 'POST'
-            && $request['recurring_interval'] === null;
+            && $request['subscription_interval'] === null
+            && $request['subscription_plan'] === null;
     }));
 });
 

@@ -137,12 +137,15 @@ class SimplestatsClient
      */
     public function trackPayment(TrackablePayment $payment): void
     {
+        $subscription = $payment->getTrackingSubscription();
+
         $payload = $this->applyPersonAttribution([
             'id' => $payment->getKey(),
             'gross' => $payment->getTrackingGross(),
             'net' => $payment->getTrackingNet(),
             'currency' => $payment->getTrackingCurrency(),
-            'recurring_interval' => $payment->getTrackingRecurringInterval()?->value,
+            'subscription_interval' => $subscription?->interval?->value,
+            'subscription_plan' => $subscription?->plan,
             'time' => $this->getTime($payment->getTrackingTime()),
         ], $payment->getTrackingPerson(), requireTrackedVisitor: false);
 
