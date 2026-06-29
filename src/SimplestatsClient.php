@@ -113,6 +113,9 @@ class SimplestatsClient
             'track_content' => $trackingData['content'] ?? null,
             'page_entry' => $trackingData['page'] ?? null,
             'add_login' => $addLogin,
+            // Links the registration back to the visitor it converted from
+            // (from the request Context, not the customer model), enabling visit -> registration timing.
+            'visitor_hash' => $this->getVisitorHash(),
             'time' => $this->getTime($user->getTrackingTime()),
         ];
 

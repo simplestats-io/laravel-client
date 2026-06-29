@@ -83,6 +83,20 @@ it('sends an api request if a new user gets created', function () {
     }));
 });
 
+it('includes the current visitor hash on user registration', function () {
+    app(SimplestatsClient::class)->setVisitorHash('visitor-hash-user');
+
+    User::create([
+        'email' => $this->faker->safeEmail(),
+        'password' => bcrypt('password'),
+    ]);
+
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-user'
+            && $request['visitor_hash'] == 'visitor-hash-user';
+    }));
+});
+
 it('sends an api request if a new users condition gets fulfilled', function () {
     config(['simplestats-client.tracking_types.user.model' => UserWithCondition::class]);
 
