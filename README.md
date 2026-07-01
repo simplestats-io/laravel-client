@@ -11,7 +11,9 @@ This is the official Laravel client to send tracking data to [https://simplestat
 
 ## Introduction
 
-_**SimpleStats**_ is **analytics for Laravel**. Track **visitors**, **registrations**, and **payments**. Discover which channels actually drive **revenue**, not just traffic. With server-side tracking and filtering via [UTM](https://en.wikipedia.org/wiki/UTM_parameters) codes, you get detailed analysis of **marketing** efforts and clearly see which channels drive **revenue**. Effortlessly evaluate **ROI**, identify cost-effective user acquisition channels, and pinpoint the most effective performance channels. _SimpleStats_ is fully **GDPR compliant**, **ad-blocker proof**, and ships with a minimalistic, straightforward installation process.
+_**SimpleStats**_ is server-side **analytics for Laravel** that follows the whole funnel: from the first **visit**, through **registration**, to every **payment**, tied back to the [UTM](https://en.wikipedia.org/wiki/UTM_parameters) source or referrer that caused it. So you see not just traffic, but which **channels** actually drive **revenue**.
+
+That is the part no other tool covers: web analytics (Plausible, Fathom) never see your payments, and subscription analytics (Baremetrics, ProfitWell) never see your acquisition channels. SimpleStats sits in between and goes deeper where it matters: **MRR / ARR**, **churn** and **retention** for subscription apps, and **ROAS / CAC / LTV:CAC** once you add your ad spend per campaign. It is fully **GDPR compliant**, **ad-blocker proof**, and ships with a minimalistic, straightforward installation process.
 
 ![screenshot](https://simplestats.io/images/screenshot.png)
 

@@ -1,6 +1,6 @@
 {
     "name": "simplestats-io/laravel-client",
-    "description": "Analytics for Laravel. Track visitors, registrations, and payments. Discover which channels actually drive revenue, not just traffic. Server-side, GDPR compliant, ad-blocker proof.",
+    "description": "Server-side analytics for Laravel that follows the full funnel from visit to registration to payment, attributed to the channel that drove it. Revenue, MRR, churn and ad-spend profit (ROAS/CAC) per channel. GDPR compliant, ad-blocker proof.",
     "keywords": [
         "simplestats-io",
         "laravel",
