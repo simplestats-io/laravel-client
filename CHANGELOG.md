@@ -2,6 +2,35 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v4.1.0 - 2026-06-07
+
+### What's changed
+
+* Added **custom properties**: attach your own `name => value` attributes to users and visitors (e.g. `subscription`, `company`, an A/B test variant) and group your analytics by them in the dashboard.
+* Added `custom_properties_resolvers` config option with a `user` and a `visitor` slot. Register a class implementing `ResolvesUserCustomProperties` or `ResolvesVisitorCustomProperties` to have properties resolved and sent automatically whenever a user or visitor is tracked.
+* Added `SimplestatsClient::trackCustomProperties()` to set properties manually on demand for a user or visitor.
+* Visitor properties are inherited by the registration of the same visit, so registrations, conversion rate and revenue can be grouped by properties assigned before sign-up (e.g. an A/B test variant).
+* The `stats-visitor` and `stats-user` track payloads now carry an optional `properties` object.
+* Added tracking events fired alongside each track: `VisitorTracked`, `UserTracked`, `LoginTracked`, `PaymentTracked`, `CustomEventTracked`, `CustomPropertiesTracked`.
+* `trackCustomEvent()` now skips events for visitors that were never tracked (bot, blocked IP, excluded route), since they could never be attributed.
+
+### Upgrade
+
+Upgrading from v4.0 is a no-op. Custom properties are opt-in: nothing changes until you configure a resolver or call `trackCustomProperties()`.
+
+To get started, set in `config/simplestats-client.php`:
+
+```php
+'custom_properties_resolvers' => [
+    'user' => App\Analytics\UserCustomPropertiesResolver::class,
+    'visitor' => App\Analytics\VisitorCustomPropertiesResolver::class,
+],
+
+```
+See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v4.0.2...v4.1.0
+
 ## v4.0.2 - 2026-06-03
 
 ### What's changed
@@ -37,6 +66,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
