@@ -50,6 +50,17 @@ class SendApiRequest implements ShouldQueue
             return;
         }
 
+        // A 4xx means the server rejected the request itself (quota reached, invalid token,
+        // rejected payload), so retrying cannot help and would only pile the request up in the
+        // queue until it drains next month with a stale timestamp. Drop it. 429 is the exception:
+        // rate limiting is temporary, so it stays on the normal backoff-retry path.
+        if ($response && $response->clientError() && $response->status() !== 429) {
+            $this->logFinalFailure($response);
+            $this->delete();
+
+            return;
+        }
+
         $attempt = $this->attempts();
 
         if ($attempt >= $this->tries) {

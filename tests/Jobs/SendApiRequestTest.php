@@ -45,9 +45,10 @@ it('completes successfully when API returns 200', function () {
     $job->job->shouldNotHaveReceived('delete');
 });
 
-it('releases the job silently when API returns an error', function () {
+it('releases the job silently when API returns a server error', function () {
     $response = Mockery::mock(Response::class);
     $response->shouldReceive('successful')->andReturn(false);
+    $response->shouldReceive('clientError')->andReturn(false);
 
     $this->connector->shouldReceive('request')->andReturn($response);
 
@@ -70,6 +71,7 @@ it('releases the job silently on connection exception', function () {
 it('deletes the job and logs warning after all retries exhausted', function () {
     $response = Mockery::mock(Response::class);
     $response->shouldReceive('successful')->andReturn(false);
+    $response->shouldReceive('clientError')->andReturn(false);
     $response->shouldReceive('status')->andReturn(500);
 
     $this->connector->shouldReceive('request')->andReturn($response);
@@ -92,6 +94,7 @@ it('deletes the job and logs warning after all retries exhausted', function () {
 it('uses correct backoff delay based on attempt number', function () {
     $response = Mockery::mock(Response::class);
     $response->shouldReceive('successful')->andReturn(false);
+    $response->shouldReceive('clientError')->andReturn(false);
 
     $this->connector->shouldReceive('request')->andReturn($response);
 
@@ -104,6 +107,7 @@ it('uses correct backoff delay based on attempt number', function () {
 it('caps backoff index at the last backoff value', function () {
     $response = Mockery::mock(Response::class);
     $response->shouldReceive('successful')->andReturn(false);
+    $response->shouldReceive('clientError')->andReturn(false);
 
     $this->connector->shouldReceive('request')->andReturn($response);
 
@@ -111,4 +115,42 @@ it('caps backoff index at the last backoff value', function () {
     $job->handle($this->connector);
 
     $job->job->shouldHaveReceived('release')->with(3600 * 24)->once();
+});
+
+it('deletes the job without retry when the server rejects with a 4xx', function () {
+    $response = Mockery::mock(Response::class);
+    $response->shouldReceive('successful')->andReturn(false);
+    $response->shouldReceive('clientError')->andReturn(true);
+    $response->shouldReceive('status')->andReturn(403);
+
+    $this->connector->shouldReceive('request')->andReturn($response);
+
+    Log::spy();
+
+    $job = createJobWithAttempts('stats-visitor', ['foo' => 'bar'], 1);
+    $job->handle($this->connector);
+
+    $job->job->shouldHaveReceived('delete')->once();
+    $job->job->shouldNotHaveReceived('release');
+
+    Log::shouldHaveReceived('warning')
+        ->with('SimpleStats API request failed after all retries.', Mockery::on(function ($context) {
+            return $context['route'] === 'stats-visitor' && $context['status'] === 403;
+        }))
+        ->once();
+});
+
+it('still retries when rate limited with a 429', function () {
+    $response = Mockery::mock(Response::class);
+    $response->shouldReceive('successful')->andReturn(false);
+    $response->shouldReceive('clientError')->andReturn(true);
+    $response->shouldReceive('status')->andReturn(429);
+
+    $this->connector->shouldReceive('request')->andReturn($response);
+
+    $job = createJobWithAttempts('stats-visitor', ['foo' => 'bar'], 1);
+    $job->handle($this->connector);
+
+    $job->job->shouldHaveReceived('release')->with(5)->once();
+    $job->job->shouldNotHaveReceived('delete');
 });
