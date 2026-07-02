@@ -2,6 +2,15 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v4.1.1 - 2026-07-01
+
+### What's Changed
+
+* retry 429 too many requests
+* Bump actions/checkout from 6 to 7 by @dependabot[bot] in https://github.com/simplestats-io/laravel-client/pull/34
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v4.1.0...v4.1.1
+
 ## v4.1.0 - 2026-06-07
 
 ### What's changed
@@ -25,6 +34,7 @@ To get started, set in `config/simplestats-client.php`:
     'user' => App\Analytics\UserCustomPropertiesResolver::class,
     'visitor' => App\Analytics\VisitorCustomPropertiesResolver::class,
 ],
+
 
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
@@ -66,6 +76,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
