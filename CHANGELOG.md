@@ -2,6 +2,54 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v5.0.0 - 2026-07-02
+
+### What's changed
+
+* Added **subscription tracking**: `TrackablePayment` now reports whether a payment is part of a subscription, which plan it belongs to and how often it renews. This is the foundation for upcoming recurring revenue metrics (MRR/ARR) and plan-level segmentation.
+* Added the `SimpleStatsIo\LaravelClient\Data\TrackingSubscription` value object (a `plan` string and a `SubscriptionInterval`).
+* Added the `SimpleStatsIo\LaravelClient\Enums\SubscriptionInterval` enum with `Month` and `Year` cases.
+* The `stats-payment` track payload now carries `subscription_interval` (`month`, `year`, or `null`) and `subscription_plan` (free-form string or `null`) fields.
+
+#### Breaking
+
+* `TrackablePayment` gained a required method: `getTrackingSubscription(): ?TrackingSubscription`. Every model implementing `TrackablePayment` (or `TrackablePaymentWithCondition`) must implement it.
+
+#### Upgrade
+
+Add the new method to each of your payment models. For one-time payments just return `null`:
+
+```php
+use SimpleStatsIo\LaravelClient\Data\TrackingSubscription;
+
+public function getTrackingSubscription(): ?TrackingSubscription
+{
+    return null; // one-time payment
+}
+
+```
+For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
+
+```php
+use SimpleStatsIo\LaravelClient\Data\TrackingSubscription;
+use SimpleStatsIo\LaravelClient\Enums\SubscriptionInterval;
+
+public function getTrackingSubscription(): ?TrackingSubscription
+{
+    return match ($this->billing_cycle) {
+        'monthly' => new TrackingSubscription($this->plan_name, SubscriptionInterval::Month),
+        'yearly' => new TrackingSubscription($this->plan_name, SubscriptionInterval::Year),
+        default => null,
+    };
+}
+
+```
+The plan is optional, pass `null` if you don't want to track it.
+
+See the [payment tracking docs](https://simplestats.io/docs/how-to-track-a-new-payment.html#subscriptions) for the full walkthrough.
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v4.1.1...v5.0.0
+
 ## v4.1.1 - 2026-07-01
 
 ### What's Changed
@@ -34,6 +82,7 @@ To get started, set in `config/simplestats-client.php`:
     'user' => App\Analytics\UserCustomPropertiesResolver::class,
     'visitor' => App\Analytics\VisitorCustomPropertiesResolver::class,
 ],
+
 
 
 ```
@@ -76,6 +125,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
