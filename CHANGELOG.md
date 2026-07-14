@@ -2,6 +2,18 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v5.0.1 - 2026-07-14
+
+### What's changed
+
+* Improved bot detection:
+  * Headless browsers (e.g. Headless Chrome) are treated as bots again. They were filtered before v3.5.4 and slipped through after the switch to matomo/device-detector, which classifies them as regular browsers.
+  * Requests claiming a modern Chromium browser (Chrome/Edge/Opera 80+) that lack the `Sec-Fetch-Mode` header are treated as bots. Every real Chromium browser sends `Sec-Fetch-*` headers, so this catches scripted clients with faked browser User-Agents.
+  * Browser prefetch/prerender requests (`Sec-Purpose`, `Purpose`, `X-Moz` headers) are no longer tracked as visits, since the visitor may never actually see the page.
+  
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v5.0.0...v5.0.1
+
 ## v5.0.0 - 2026-07-02
 
 ### What's changed
@@ -27,6 +39,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
     return null; // one-time payment
 }
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -42,6 +55,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 ```
 The plan is optional, pass `null` if you don't want to track it.
@@ -85,6 +99,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -125,6 +140,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
