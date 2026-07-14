@@ -120,12 +120,15 @@ class CheckTracking
             && $request->isMethod('get')
             && ! $this->inExceptArray($request)
             && ! $this->isBlockedIp($ip)
+            && ! $this->isPrefetchRequest($request)
             && is_string($request->userAgent())
-            && ! $this->isBot($request->userAgent());
+            && ! $this->isBot($request);
     }
 
-    protected function isBot(string $userAgent): bool
+    protected function isBot(Request $request): bool
     {
+        $userAgent = (string) $request->userAgent();
+
         $detector = new DeviceDetector($userAgent);
         $detector->discardBotInformation();
         $detector->parse();
@@ -134,11 +137,50 @@ class CheckTracking
             return true;
         }
 
+        // device-detector treats headless browsers as regular browsers, but they are
+        // practically always automation, so match the User-Agent token directly.
+        if (Str::contains($userAgent, 'headless', ignoreCase: true)) {
+            return true;
+        }
+
+        if ($this->hasInconsistentBrowserHeaders($request)) {
+            return true;
+        }
+
         // Real visitors come from browsers or mobile apps. Treat HTTP libraries
         // (curl, python-requests, Go-http-client, ...), feed readers, media
         // players, and PIM clients (email apps) as bot-like, as they almost
         // always represent automated/scripted traffic in a web analytics context.
         return ! $detector->isBrowser() && ! $detector->isMobileApp();
+    }
+
+    /**
+     * Chromium sends Sec-Fetch-* headers on every request since v76. A User-Agent
+     * claiming a modern Chromium browser without them is almost certainly a
+     * scripted client with a faked User-Agent (python/curl pretending to be Chrome).
+     * Safari and Firefox are deliberately not checked: their Sec-Fetch support
+     * arrived late and is less consistent.
+     */
+    protected function hasInconsistentBrowserHeaders(Request $request): bool
+    {
+        if (! preg_match('/Chrome\/(\d+)/', (string) $request->userAgent(), $matches)) {
+            return false;
+        }
+
+        return (int) $matches[1] >= 80 && ! $request->hasHeader('Sec-Fetch-Mode');
+    }
+
+    /**
+     * Browsers speculatively prefetch/prerender pages (e.g. Chrome speculation
+     * rules) that the visitor may never actually see, so those requests must
+     * not count as visits. JS-based trackers skip them implicitly because they
+     * only fire on page activation.
+     */
+    protected function isPrefetchRequest(Request $request): bool
+    {
+        return Str::contains($request->header('Sec-Purpose', ''), ['prefetch', 'prerender'])
+            || $request->header('Purpose') === 'prefetch'
+            || $request->header('X-Moz') === 'prefetch';
     }
 
     protected function resolveIp(Request $request): ?string

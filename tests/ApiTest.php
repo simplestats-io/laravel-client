@@ -219,7 +219,7 @@ it('inherits resolved visitor properties on user registration', function () {
 
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
 
-    get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36']);
+    get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36', 'sec_fetch_mode' => 'navigate']);
 
     User::create([
         'email' => $this->faker->safeEmail(),
@@ -356,7 +356,7 @@ it('sends an api request if a new visitor payment gets created', function () {
 
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
 
-    get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36']);
+    get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36', 'sec_fetch_mode' => 'navigate']);
 
     VisitorPayment::create([
         'visitor_hash' => app(SimplestatsClient::class)->getVisitorHash(),
@@ -378,7 +378,7 @@ it('sends an api request if a new visitor payments condition gets fulfilled', fu
 
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
 
-    get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36']);
+    get('/test', ['user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36', 'sec_fetch_mode' => 'navigate']);
 
     $conditionalPayment = VisitorPaymentWithCondition::create([
         'visitor_hash' => app(SimplestatsClient::class)->getVisitorHash(),

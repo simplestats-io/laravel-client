@@ -231,7 +231,7 @@ return [
 
 ## Bot Detection
 
-Bot and crawler traffic is **filtered out automatically** before any tracking happens. A request is skipped when it has no User-Agent string, or when the User-Agent matches a known bot signature via [matomo/device-detector](https://github.com/matomo-org/device-detector). This is enabled by default and requires no configuration.
+Bot and crawler traffic is **filtered out automatically** before any tracking happens. This covers known bot signatures via [matomo/device-detector](https://github.com/matomo-org/device-detector), HTTP libraries (curl, python-requests, ...), headless browsers, scripted clients faking a real browser, and browser prefetch requests. This is enabled by default and requires no configuration.
 
 ## Documentation
 

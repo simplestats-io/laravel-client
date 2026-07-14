@@ -45,6 +45,7 @@ it('handles referer', function ($referer, $expected) {
 
     get('/test', [
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'referer' => $referer,
     ])->assertOk();
 
@@ -66,6 +67,70 @@ it('does not track bots', function () {
     Http::assertNothingSent();
 });
 
+it('does not track headless browsers', function ($userAgent) {
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'user_agent' => $userAgent,
+        'sec_fetch_mode' => 'navigate',
+    ])->assertOk();
+
+    flushDeferred();
+    Http::assertNothingSent();
+})->with([
+    'Headless Chrome' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/125.0.0.0 Safari/537.36',
+    'Headless Edge' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+]);
+
+it('does not track modern Chromium user agents without Sec-Fetch headers', function () {
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    ])->assertOk();
+
+    flushDeferred();
+    Http::assertNothingSent();
+});
+
+it('tracks non-Chromium browsers without Sec-Fetch headers', function () {
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/test', $this->apiUrl);
+});
+
+it('tracks pre-Sec-Fetch Chrome versions without Sec-Fetch headers', function () {
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/test', $this->apiUrl);
+});
+
+it('does not track prefetch requests', function ($headers) {
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
+        ...$headers,
+    ])->assertOk();
+
+    flushDeferred();
+    Http::assertNothingSent();
+})->with([
+    'Sec-Purpose prefetch' => [['sec_purpose' => 'prefetch']],
+    'Sec-Purpose prefetch;prerender' => [['sec_purpose' => 'prefetch;prerender']],
+    'Purpose prefetch' => [['purpose' => 'prefetch']],
+    'X-Moz prefetch' => [['x_moz' => 'prefetch']],
+]);
+
 it('does not track requests without a user agent', function () {
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
 
@@ -82,6 +147,7 @@ it('uses public IP from request->ip() directly', function () {
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '8.8.8.8', $this->apiUrl);
@@ -94,6 +160,7 @@ it('resolves IP from CF-Connecting-IP when request IP is private', function () {
         'REMOTE_ADDR' => '172.17.0.1',
         'HTTP_CF_CONNECTING_IP' => '203.0.113.50',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '203.0.113.50', $this->apiUrl);
@@ -106,6 +173,7 @@ it('resolves IP from True-Client-IP when request IP is private', function () {
         'REMOTE_ADDR' => '10.0.0.1',
         'HTTP_TRUE_CLIENT_IP' => '198.51.100.25',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '198.51.100.25', $this->apiUrl);
@@ -118,6 +186,7 @@ it('resolves first IP from X-Forwarded-For when request IP is private', function
         'REMOTE_ADDR' => '192.168.1.1',
         'HTTP_X_FORWARDED_FOR' => '203.0.113.99, 10.0.0.1, 172.16.0.1',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '203.0.113.99', $this->apiUrl);
@@ -130,6 +199,7 @@ it('resolves IP from X-Real-IP when request IP is private', function () {
         'REMOTE_ADDR' => '10.0.0.5',
         'HTTP_X_REAL_IP' => '198.51.100.80',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '198.51.100.80', $this->apiUrl);
@@ -143,6 +213,7 @@ it('falls back to request IP when all proxy headers contain private IPs', functi
         'HTTP_X_FORWARDED_FOR' => '10.0.0.2, 172.16.0.5',
         'HTTP_X_REAL_IP' => '10.0.0.3',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '192.168.1.1', $this->apiUrl);
@@ -158,6 +229,7 @@ it('prioritizes CF-Connecting-IP over other proxy headers', function () {
         'HTTP_X_FORWARDED_FOR' => '198.51.100.30',
         'HTTP_X_REAL_IP' => '198.51.100.40',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '203.0.113.10', $this->apiUrl);
@@ -171,6 +243,7 @@ it('blocks resolved proxy IP when it matches blocked IPs', function () {
         'REMOTE_ADDR' => '172.17.0.1',
         'HTTP_CF_CONNECTING_IP' => '203.0.113.50',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     flushDeferred();
@@ -184,6 +257,7 @@ it('resolves IP from proxy headers when REMOTE_ADDR is IPv6-mapped private IPv4'
         'REMOTE_ADDR' => '::ffff:172.17.0.1',
         'HTTP_X_FORWARDED_FOR' => '203.0.113.50',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '203.0.113.50', $this->apiUrl);
@@ -195,6 +269,7 @@ it('normalizes IPv6-mapped public IPv4 from request IP', function () {
     get('/test', [
         'REMOTE_ADDR' => '::ffff:8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '8.8.8.8', $this->apiUrl);
@@ -207,6 +282,7 @@ it('finds public IP in X-Forwarded-For chain when first entry is private', funct
         'REMOTE_ADDR' => '192.168.1.1',
         'HTTP_X_FORWARDED_FOR' => '10.0.0.2, 203.0.113.50, 172.16.0.1',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '203.0.113.50', $this->apiUrl);
@@ -221,6 +297,7 @@ it('skips invalid header values and continues checking next header', function ()
         'HTTP_TRUE_CLIENT_IP' => '999.999.999.999',
         'HTTP_X_FORWARDED_FOR' => '198.51.100.75',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('ip', '198.51.100.75', $this->apiUrl);
@@ -232,6 +309,7 @@ it('caches tracking data so a subsequent request can read it from context', func
     get('/page?utm_source=newsletter&utm_campaign=spring-sale', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('track_source', 'newsletter', $this->apiUrl);
@@ -243,6 +321,7 @@ it('reads tracking codes from headers', function () {
     get('/page', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'HTTP_X_UTM_SOURCE' => 'twitter',
         'HTTP_X_UTM_CAMPAIGN' => 'launch',
     ])->assertOk();
@@ -256,6 +335,7 @@ it('reads referer from X-Document-Referer header, overriding the standard Refere
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'referer' => 'https://wrong.test',
         'HTTP_X_DOCUMENT_REFERER' => 'https://google.com',
     ])->assertOk();
@@ -269,6 +349,7 @@ it('reads referer from document_referer query parameter', function () {
     get('/test?document_referer='.urlencode('https://google.com'), [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('track_referer', 'google.com', $this->apiUrl);
@@ -283,6 +364,7 @@ it('ignores `referer`/`referrer` query params entirely (neither source nor refer
     get('/test?referer=newsletter&referrer='.urlencode('https://news.ycombinator.com'), [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('track_source', null, $this->apiUrl);
@@ -298,6 +380,7 @@ it('never reads a standard HTTP header into a source, even when aliased in the c
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'referer' => 'https://news.ycombinator.com',
     ])->assertOk();
 
@@ -313,6 +396,7 @@ it('keeps a `ref` query param as a campaign source', function () {
     get('/test?ref=newsletter', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('track_source', 'newsletter', $this->apiUrl);
@@ -327,6 +411,7 @@ it('records an external HTTP Referer header as the referer, never as the source'
     get('/dashboard', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'referer' => 'https://news.ycombinator.com/item?id=1',
     ])->assertOk();
 
@@ -341,6 +426,7 @@ it('filters the app own domain sent via the explicit document referer', function
     get('/dashboard?document_referer='.urlencode('https://my-app.test/login'), [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
@@ -354,6 +440,7 @@ it('does not record the app own domain (from the HTTP Referer header) as a sourc
     get('/dashboard', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'referer' => 'https://my-app.test/login',
     ])->assertOk();
 
@@ -370,6 +457,7 @@ it('does not treat an unrelated host that merely shares a substring as the own d
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'referer' => 'https://app.test',
     ])->assertOk();
 
@@ -385,6 +473,7 @@ it('keeps a subdomain of the app host as a referer (separate property)', functio
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'referer' => 'https://account.my-app.test',
     ])->assertOk();
 
@@ -397,6 +486,7 @@ it('reads page from X-Page header, overriding the request path', function () {
     get('/track-init', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
         'HTTP_X_PAGE' => '/landing',
     ])->assertOk();
 
@@ -409,6 +499,7 @@ it('reads page from query parameter', function () {
     get('/track-init?page=/pricing', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     assertVisitorTrackedWith('page_entry', '/pricing', $this->apiUrl);
@@ -420,6 +511,7 @@ it('dispatches trackVisitor only once per day per visitor', function () {
     get('/page', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     flushDeferred();
@@ -427,6 +519,7 @@ it('dispatches trackVisitor only once per day per visitor', function () {
     get('/page', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     flushDeferred();
@@ -441,6 +534,7 @@ it('sends resolved visitor properties within the visitor payload', function () {
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     flushDeferred();
@@ -457,6 +551,7 @@ it('sends empty properties when no resolver is configured', function () {
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     flushDeferred();
@@ -474,6 +569,7 @@ it('ignores a configured resolver that does not implement the contract', functio
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     flushDeferred();
@@ -491,6 +587,7 @@ it('still tracks the visitor when the properties resolver throws', function () {
     get('/test', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
     flushDeferred();
@@ -508,6 +605,7 @@ it('falls back to session storage by default', function () {
     get('/page?utm_source=newsletter', [
         'REMOTE_ADDR' => '8.8.8.8',
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
     ])
         ->assertOk()
         ->assertSessionHas('simplestats.tracking');
