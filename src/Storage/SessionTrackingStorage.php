@@ -15,7 +15,8 @@ class SessionTrackingStorage implements TrackingStorage
 
     public function get(?string $identifier): Collection
     {
-        return session(self::SESSION_KEY) ?? collect();
+        // Session drivers serialize Collections as arrays, so always wrap.
+        return collect(session(self::SESSION_KEY) ?? []);
     }
 
     public function has(string $identifier): bool

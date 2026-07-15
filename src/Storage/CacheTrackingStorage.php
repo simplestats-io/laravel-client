@@ -20,7 +20,8 @@ class CacheTrackingStorage implements TrackingStorage
             return collect();
         }
 
-        return Cache::get(self::CACHE_KEY_PREFIX.$identifier) ?? collect();
+        // Cache may return an array (e.g. after JSON serialization), so always wrap.
+        return collect(Cache::get(self::CACHE_KEY_PREFIX.$identifier) ?? []);
     }
 
     public function has(string $identifier): bool
