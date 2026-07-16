@@ -2,6 +2,12 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## Unreleased
+
+### What's changed
+
+* Fixed `SessionTrackingStorage::get()` and `CacheTrackingStorage::get()` returning an array (and triggering a `TypeError`) when stored attribution data is read back. Both now always wrap the value in a `Collection`.
+
 ## v5.0.1 - 2026-07-14
 
 ### What's changed
