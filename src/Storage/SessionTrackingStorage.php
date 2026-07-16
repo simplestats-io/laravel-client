@@ -2,6 +2,7 @@
 
 namespace SimpleStatsIo\LaravelClient\Storage;
 
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
 
 class SessionTrackingStorage implements TrackingStorage
@@ -10,12 +11,14 @@ class SessionTrackingStorage implements TrackingStorage
 
     public function put(string $identifier, mixed $data): void
     {
-        session()->put(self::SESSION_KEY, $data);
+        // Store a plain array so the value survives any session serializer and
+        // reading it back never requires this package's classes.
+        session()->put(self::SESSION_KEY, $data instanceof Arrayable ? $data->toArray() : $data);
     }
 
     public function get(?string $identifier): Collection
     {
-        // Session drivers serialize Collections as arrays, so always wrap.
+        // Older sessions may still hold a serialized Collection, so always wrap.
         return collect(session(self::SESSION_KEY) ?? []);
     }
 

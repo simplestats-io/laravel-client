@@ -71,3 +71,41 @@ it('returns an empty collection from cache storage when the identifier is empty'
     expect($storage->get(null))->toBeInstanceOf(Collection::class)->toBeEmpty()
         ->and($storage->get(''))->toBeInstanceOf(Collection::class)->toBeEmpty();
 });
+
+it('stores tracking data as a plain array in the session', function () {
+    $storage = new SessionTrackingStorage;
+
+    $storage->put('visitor-hash', collect(['source' => 'google']));
+
+    expect(session(SessionTrackingStorage::SESSION_KEY))->toBeArray()
+        ->toBe(['source' => 'google']);
+});
+
+it('stores tracking data as a plain array in the cache', function () {
+    $storage = new CacheTrackingStorage;
+    $identifier = 'visitor-hash';
+
+    $storage->put($identifier, collect(['source' => 'google']));
+
+    expect(Cache::get(CacheTrackingStorage::CACHE_KEY_PREFIX.$identifier))->toBeArray()
+        ->toBe(['source' => 'google']);
+});
+
+it('returns a collection from session storage when the session holds a legacy collection', function () {
+    session([SessionTrackingStorage::SESSION_KEY => collect(['source' => 'google'])]);
+
+    $result = (new SessionTrackingStorage)->get('visitor-hash');
+
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and($result->get('source'))->toBe('google');
+});
+
+it('returns a collection from cache storage when the cache holds a legacy collection', function () {
+    $identifier = 'visitor-hash';
+    Cache::put(CacheTrackingStorage::CACHE_KEY_PREFIX.$identifier, collect(['source' => 'google']), now()->endOfDay());
+
+    $result = (new CacheTrackingStorage)->get($identifier);
+
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and($result->get('source'))->toBe('google');
+});
