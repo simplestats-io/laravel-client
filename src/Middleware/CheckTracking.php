@@ -6,6 +6,7 @@ use Closure;
 use DeviceDetector\DeviceDetector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use SimpleStatsIo\LaravelClient\Cache\DeviceDetectorCache;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\Services\CustomPropertiesResolver;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
@@ -131,6 +132,7 @@ class CheckTracking
 
         $detector = new DeviceDetector($userAgent);
         $detector->discardBotInformation();
+        $detector->setCache(new DeviceDetectorCache);
         $detector->parse();
 
         if ($detector->isBot()) {
