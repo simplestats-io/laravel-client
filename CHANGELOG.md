@@ -2,6 +2,14 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v5.0.3 - 2026-07-20
+
+### What's changed
+
+* fixed bot detection cache
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v5.0.2...v5.0.3
+
 ## v5.0.2 - 2026-07-16
 
 ### What's Changed
@@ -54,6 +62,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
 
 
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -69,6 +78,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 
 
@@ -116,6 +126,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -156,6 +167,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
