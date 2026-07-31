@@ -156,6 +156,37 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | SimpleStats Beacon
+     |--------------------------------------------------------------------------
+     |
+     | Only needed if your pages are served from a static cache that bypasses
+     | PHP entirely (Statamic "full measure" static caching, nginx/Varnish page
+     | caching, Cloudflare "Cache Everything", ...). In that case the tracking
+     | middleware never runs and those visits are lost.
+     |
+     | Enabling this registers a tiny GET endpoint that returns a 1x1 pixel.
+     | Cached pages request it once per page view, which gives the middleware
+     | a real request to track. Add the snippet from the docs to your layout:
+     |
+     | https://simplestats.io/docs/static-caching
+     |
+     | The route is registered in the first group listed in middleware_groups,
+     | so it always carries the tracking middleware.
+     |
+     | Pick a path that looks like a regular asset: paths containing "track",
+     | "stats", "analytics", "beacon", "collect" or "pixel" are blocked by
+     | common ad blocker lists, and a path with a file extension may be cached
+     | by your CDN before it ever reaches your app.
+     |
+     */
+
+    'beacon' => [
+        'enabled' => env('SIMPLESTATS_BEACON_ENABLED', false),
+        'path' => env('SIMPLESTATS_BEACON_PATH', 'assets/v'),
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
      | SimpleStats Tracking Codes
      |--------------------------------------------------------------------------
      |
@@ -232,6 +263,10 @@ return [
 ## Bot Detection
 
 Bot and crawler traffic is **filtered out automatically** before any tracking happens. This covers known bot signatures via [matomo/device-detector](https://github.com/matomo-org/device-detector), HTTP libraries (curl, python-requests, ...), headless browsers, scripted clients faking a real browser, and browser prefetch requests. This is enabled by default and requires no configuration.
+
+## Static Caching
+
+If your pages are served from a cache that bypasses PHP entirely (Statamic `full` measure static caching, nginx/Varnish page caching, Cloudflare "Cache Everything"), the tracking middleware never runs. Enable the `beacon` config option and add the snippet from [Static Caching & CDNs](https://simplestats.io/docs/static-caching) to your layout.
 
 ## Documentation
 

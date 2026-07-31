@@ -7,6 +7,7 @@ use DeviceDetector\DeviceDetector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use SimpleStatsIo\LaravelClient\Cache\DeviceDetectorCache;
+use SimpleStatsIo\LaravelClient\Controllers\BeaconController;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\Services\CustomPropertiesResolver;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
@@ -28,16 +29,20 @@ class CheckTracking
 
         SimplestatsClient::setVisitorHash($visitorHash);
 
-        if (! $this->doTracking($request, $ip, $visitorHash)) {
+        $beacon = $this->getBeaconContext($request);
+
+        if (! $this->doTracking($request, $ip, $visitorHash, $beacon)) {
             return $next($request);
         }
 
         $collectedTrackingData = collect(config('simplestats-client.tracking_codes'))->mapWithKeys(
-            function ($params, $key) use ($request) {
+            function ($params, $key) use ($request, $beacon) {
                 foreach ($params as $param) {
-                    $value = $request->input($param) ?? $request->header('x-'.$param);
+                    $value = $request->input($param)
+                        ?? $request->header('x-'.$param)
+                        ?? ($beacon['query'][$param] ?? null);
 
-                    if (! empty($value)) {
+                    if (! empty($value) && is_scalar($value)) {
                         return [$key => $value];
                     }
                 }
@@ -49,7 +54,7 @@ class CheckTracking
 
         $cleanedTrackingData->put('ip', $ip);
         $cleanedTrackingData->put('referer', $this->getReferer($request));
-        $cleanedTrackingData->put('page', $this->getPage($request));
+        $cleanedTrackingData->put('page', $this->getPage($request, $beacon));
         $cleanedTrackingData->put('user_agent', $userAgent ? urlencode($userAgent) : null);
         $cleanedTrackingData->put('properties', $this->customPropertiesResolver->forVisitor($request));
 
@@ -108,16 +113,71 @@ class CheckTracking
         return $host === $appHost;
     }
 
-    protected function getPage(Request $request): string
+    /**
+     * @param  array{path: string|null, query: array<string, mixed>, hotlinked: bool}|null  $beacon
+     */
+    protected function getPage(Request $request, ?array $beacon = null): ?string
     {
-        return $request->input('page')
-            ?: $request->header('X-Page')
-            ?: $request->getPathInfo();
+        $page = $request->input('page') ?: $request->header('X-Page');
+
+        // The beacon endpoint itself is never an entry page. Without a usable
+        // referer the page stays unknown, but the visit still counts.
+        if ($beacon !== null) {
+            return $page ?: $beacon['path'];
+        }
+
+        return $page ?: $request->getPathInfo();
     }
 
-    protected function doTracking(Request $request, ?string $ip, string $visitorHash): bool
+    /**
+     * A statically cached page cannot report its own url, because the html is
+     * identical for every visitor. The browser does send the embedding page as
+     * the Referer of the beacon request though, and for same-origin requests
+     * that referer carries the full url including its query string. So the
+     * beacon's referer doubles as the entry page and as the source of the
+     * tracking codes, which keeps those working without any JavaScript.
+     *
+     * @return array{path: string|null, query: array<string, mixed>, hotlinked: bool}|null
+     */
+    protected function getBeaconContext(Request $request): ?array
+    {
+        if (! config('simplestats-client.beacon.enabled')) {
+            return null;
+        }
+
+        $beaconPath = BeaconController::path();
+
+        if ($beaconPath === '' || trim($request->getPathInfo(), '/') !== $beaconPath) {
+            return null;
+        }
+
+        $referer = (string) $request->header('referer');
+
+        // A missing referer still is a page view, we just cannot tell which page.
+        // A foreign one is not: the pixel was embedded in a copy of our html on
+        // a site we know nothing about, so that request must not count at all.
+        if (empty($referer)) {
+            return ['path' => null, 'query' => [], 'hotlinked' => false];
+        }
+
+        if (! $this->isOwnDomain($referer)) {
+            return ['path' => null, 'query' => [], 'hotlinked' => true];
+        }
+
+        $parts = parse_url($referer) ?: [];
+
+        parse_str($parts['query'] ?? '', $query);
+
+        return ['path' => $parts['path'] ?? null, 'query' => $query, 'hotlinked' => false];
+    }
+
+    /**
+     * @param  array{path: string|null, query: array<string, mixed>, hotlinked: bool}|null  $beacon
+     */
+    protected function doTracking(Request $request, ?string $ip, string $visitorHash, ?array $beacon = null): bool
     {
         return ! $this->trackingStorage->has($visitorHash)
+            && ! ($beacon['hotlinked'] ?? false)
             && $request->isMethod('get')
             && ! $this->inExceptArray($request)
             && ! $this->isBlockedIp($ip)

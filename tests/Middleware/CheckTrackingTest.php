@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
@@ -23,23 +22,6 @@ beforeEach(function () {
     ]);
 });
 
-function flushDeferred(): void
-{
-    if (class_exists(DeferredCallbackCollection::class)) {
-        app(DeferredCallbackCollection::class)->invoke();
-    }
-}
-
-function assertVisitorTrackedWith(string $field, $expected, string $apiUrl): void
-{
-    flushDeferred();
-
-    Http::assertSent(function ($request) use ($apiUrl, $field, $expected) {
-        return $request->url() === $apiUrl.'stats-visitor'
-            && ($request->data()[$field] ?? null) === $expected;
-    });
-}
-
 it('handles referer', function ($referer, $expected) {
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
 
@@ -49,7 +31,7 @@ it('handles referer', function ($referer, $expected) {
         'referer' => $referer,
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_referer', $expected, $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', $expected);
 })->with([
     'handles https://fake.test' => ['https://fake.test', 'fake.test'],
     'handles https://www.fake.test' => ['https://www.fake.test', 'fake.test'],
@@ -100,7 +82,7 @@ it('tracks non-Chromium browsers without Sec-Fetch headers', function () {
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
     ])->assertOk();
 
-    assertVisitorTrackedWith('page_entry', '/test', $this->apiUrl);
+    assertVisitorTrackedWith('page_entry', '/test');
 });
 
 it('tracks pre-Sec-Fetch Chrome versions without Sec-Fetch headers', function () {
@@ -110,7 +92,7 @@ it('tracks pre-Sec-Fetch Chrome versions without Sec-Fetch headers', function ()
         'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
     ])->assertOk();
 
-    assertVisitorTrackedWith('page_entry', '/test', $this->apiUrl);
+    assertVisitorTrackedWith('page_entry', '/test');
 });
 
 it('does not track prefetch requests', function ($headers) {
@@ -150,7 +132,7 @@ it('uses public IP from request->ip() directly', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '8.8.8.8', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '8.8.8.8');
 });
 
 it('resolves IP from CF-Connecting-IP when request IP is private', function () {
@@ -163,7 +145,7 @@ it('resolves IP from CF-Connecting-IP when request IP is private', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '203.0.113.50', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '203.0.113.50');
 });
 
 it('resolves IP from True-Client-IP when request IP is private', function () {
@@ -176,7 +158,7 @@ it('resolves IP from True-Client-IP when request IP is private', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '198.51.100.25', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '198.51.100.25');
 });
 
 it('resolves first IP from X-Forwarded-For when request IP is private', function () {
@@ -189,7 +171,7 @@ it('resolves first IP from X-Forwarded-For when request IP is private', function
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '203.0.113.99', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '203.0.113.99');
 });
 
 it('resolves IP from X-Real-IP when request IP is private', function () {
@@ -202,7 +184,7 @@ it('resolves IP from X-Real-IP when request IP is private', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '198.51.100.80', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '198.51.100.80');
 });
 
 it('falls back to request IP when all proxy headers contain private IPs', function () {
@@ -216,7 +198,7 @@ it('falls back to request IP when all proxy headers contain private IPs', functi
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '192.168.1.1', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '192.168.1.1');
 });
 
 it('prioritizes CF-Connecting-IP over other proxy headers', function () {
@@ -232,7 +214,7 @@ it('prioritizes CF-Connecting-IP over other proxy headers', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '203.0.113.10', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '203.0.113.10');
 });
 
 it('blocks resolved proxy IP when it matches blocked IPs', function () {
@@ -260,7 +242,7 @@ it('resolves IP from proxy headers when REMOTE_ADDR is IPv6-mapped private IPv4'
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '203.0.113.50', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '203.0.113.50');
 });
 
 it('normalizes IPv6-mapped public IPv4 from request IP', function () {
@@ -272,7 +254,7 @@ it('normalizes IPv6-mapped public IPv4 from request IP', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '8.8.8.8', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '8.8.8.8');
 });
 
 it('finds public IP in X-Forwarded-For chain when first entry is private', function () {
@@ -285,7 +267,7 @@ it('finds public IP in X-Forwarded-For chain when first entry is private', funct
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '203.0.113.50', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '203.0.113.50');
 });
 
 it('skips invalid header values and continues checking next header', function () {
@@ -300,7 +282,7 @@ it('skips invalid header values and continues checking next header', function ()
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('ip', '198.51.100.75', $this->apiUrl);
+    assertVisitorTrackedWith('ip', '198.51.100.75');
 });
 
 it('caches tracking data so a subsequent request can read it from context', function () {
@@ -312,7 +294,7 @@ it('caches tracking data so a subsequent request can read it from context', func
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_source', 'newsletter', $this->apiUrl);
+    assertVisitorTrackedWith('track_source', 'newsletter');
 });
 
 it('reads tracking codes from headers', function () {
@@ -326,7 +308,7 @@ it('reads tracking codes from headers', function () {
         'HTTP_X_UTM_CAMPAIGN' => 'launch',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_source', 'twitter', $this->apiUrl);
+    assertVisitorTrackedWith('track_source', 'twitter');
 });
 
 it('reads referer from X-Document-Referer header, overriding the standard Referer header', function () {
@@ -340,7 +322,7 @@ it('reads referer from X-Document-Referer header, overriding the standard Refere
         'HTTP_X_DOCUMENT_REFERER' => 'https://google.com',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_referer', 'google.com', $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', 'google.com');
 });
 
 it('reads referer from document_referer query parameter', function () {
@@ -352,7 +334,7 @@ it('reads referer from document_referer query parameter', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_referer', 'google.com', $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', 'google.com');
 });
 
 it('ignores `referer`/`referrer` query params entirely (neither source nor referer)', function () {
@@ -367,8 +349,8 @@ it('ignores `referer`/`referrer` query params entirely (neither source nor refer
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_source', null, $this->apiUrl);
-    assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
+    assertVisitorTrackedWith('track_source', null);
+    assertVisitorTrackedWith('track_referer', null);
 });
 
 it('never reads a standard HTTP header into a source, even when aliased in the config', function () {
@@ -384,8 +366,8 @@ it('never reads a standard HTTP header into a source, even when aliased in the c
         'referer' => 'https://news.ycombinator.com',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_source', null, $this->apiUrl);
-    assertVisitorTrackedWith('track_referer', 'news.ycombinator.com', $this->apiUrl);
+    assertVisitorTrackedWith('track_source', null);
+    assertVisitorTrackedWith('track_referer', 'news.ycombinator.com');
 });
 
 it('keeps a `ref` query param as a campaign source', function () {
@@ -399,8 +381,8 @@ it('keeps a `ref` query param as a campaign source', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_source', 'newsletter', $this->apiUrl);
-    assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
+    assertVisitorTrackedWith('track_source', 'newsletter');
+    assertVisitorTrackedWith('track_referer', null);
 });
 
 it('records an external HTTP Referer header as the referer, never as the source', function () {
@@ -415,8 +397,8 @@ it('records an external HTTP Referer header as the referer, never as the source'
         'referer' => 'https://news.ycombinator.com/item?id=1',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_referer', 'news.ycombinator.com', $this->apiUrl);
-    assertVisitorTrackedWith('track_source', null, $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', 'news.ycombinator.com');
+    assertVisitorTrackedWith('track_source', null);
 });
 
 it('filters the app own domain sent via the explicit document referer', function () {
@@ -429,7 +411,7 @@ it('filters the app own domain sent via the explicit document referer', function
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', null);
 });
 
 it('does not record the app own domain (from the HTTP Referer header) as a source', function () {
@@ -444,8 +426,8 @@ it('does not record the app own domain (from the HTTP Referer header) as a sourc
         'referer' => 'https://my-app.test/login',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_source', null, $this->apiUrl);
-    assertVisitorTrackedWith('track_referer', null, $this->apiUrl);
+    assertVisitorTrackedWith('track_source', null);
+    assertVisitorTrackedWith('track_referer', null);
 });
 
 it('does not treat an unrelated host that merely shares a substring as the own domain', function () {
@@ -461,7 +443,7 @@ it('does not treat an unrelated host that merely shares a substring as the own d
         'referer' => 'https://app.test',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_referer', 'app.test', $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', 'app.test');
 });
 
 it('keeps a subdomain of the app host as a referer (separate property)', function () {
@@ -477,7 +459,7 @@ it('keeps a subdomain of the app host as a referer (separate property)', functio
         'referer' => 'https://account.my-app.test',
     ])->assertOk();
 
-    assertVisitorTrackedWith('track_referer', 'account.my-app.test', $this->apiUrl);
+    assertVisitorTrackedWith('track_referer', 'account.my-app.test');
 });
 
 it('reads page from X-Page header, overriding the request path', function () {
@@ -490,7 +472,7 @@ it('reads page from X-Page header, overriding the request path', function () {
         'HTTP_X_PAGE' => '/landing',
     ])->assertOk();
 
-    assertVisitorTrackedWith('page_entry', '/landing', $this->apiUrl);
+    assertVisitorTrackedWith('page_entry', '/landing');
 });
 
 it('reads page from query parameter', function () {
@@ -502,7 +484,7 @@ it('reads page from query parameter', function () {
         'sec_fetch_mode' => 'navigate',
     ])->assertOk();
 
-    assertVisitorTrackedWith('page_entry', '/pricing', $this->apiUrl);
+    assertVisitorTrackedWith('page_entry', '/pricing');
 });
 
 it('dispatches trackVisitor only once per day per visitor', function () {
@@ -610,5 +592,5 @@ it('falls back to session storage by default', function () {
         ->assertOk()
         ->assertSessionHas('simplestats.tracking');
 
-    assertVisitorTrackedWith('track_source', 'newsletter', $this->apiUrl);
+    assertVisitorTrackedWith('track_source', 'newsletter');
 });

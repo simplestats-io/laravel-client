@@ -6,6 +6,8 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use SimpleStatsIo\LaravelClient\Controllers\BeaconController;
 use SimpleStatsIo\LaravelClient\Events\CustomPropertiesTracked;
 use SimpleStatsIo\LaravelClient\Listeners\StoreVisitorProperties;
 use SimpleStatsIo\LaravelClient\Listeners\UserLoginListener;
@@ -31,6 +33,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
         $package
             ->name('simplestats-client')
             ->hasConfigFile()
+            ->hasRoute('beacon')
             ->hasMigration('add_visitor_hash_to_payments_table');
     }
 
@@ -69,12 +72,35 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
             Log::warning("[simplestats-client] middleware_groups includes 'api' but tracking_storage is 'session'. API requests typically have no session, so tracking will silently fail. Set tracking_storage to 'cache' for headless/SPA setups.");
         }
 
+        if (config('simplestats-client.beacon.enabled')) {
+            $this->validateBeaconConfiguration();
+        }
+
         if ($storage === 'cache') {
             $store = config('cache.default');
             $driver = config("cache.stores.{$store}.driver");
 
             if (in_array($driver, ['array', 'null'], true)) {
                 Log::warning("[simplestats-client] tracking_storage is 'cache' but the default cache driver is '{$driver}', which does not persist across requests. Tracking will not work. Use 'redis', 'memcached', or another persistent driver.");
+            }
+        }
+    }
+
+    protected function validateBeaconConfiguration(): void
+    {
+        $path = BeaconController::path();
+
+        if ($path === '') {
+            Log::warning('[simplestats-client] beacon.enabled is true but beacon.path is empty, so no beacon route was registered. Set a path like "assets/v".');
+
+            return;
+        }
+
+        foreach ((array) config('simplestats-client.except', []) as $except) {
+            if (Str::is(trim($except, '/'), $path)) {
+                Log::warning("[simplestats-client] The beacon path '{$path}' matches the except pattern '{$except}', so beacon requests are never tracked. Remove the pattern or pick a different beacon path.");
+
+                return;
             }
         }
     }
