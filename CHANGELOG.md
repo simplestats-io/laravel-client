@@ -2,6 +2,61 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v5.1.0 - 2026-07-31
+
+### What's changed
+
+* Added an optional **tracking beacon** for sites served from a static cache that bypasses PHP (Statamic "full measure" static caching, nginx/Varnish page caching, Cloudflare "Cache Everything"). In those setups the tracking middleware never runs and visits are lost entirely. Enabling the beacon registers a tiny GET endpoint that returns a 1x1 pixel, which cached pages request once per page view.
+* The beacon works **without JavaScript**. Browsers send the embedding page as the `Referer` of the pixel request, and for same-origin requests that header carries the full url including its query string, so the entry page and all `utm_*` parameters are derived server-side. Only the external referrer needs JavaScript, because `document.referrer` is the one value the browser does not disclose otherwise.
+* Beacon requests go through the same bot filtering, visitor hashing and deduplication as any other request. A cache miss served by the app and the beacon of the same page count as one visit.
+* Requests whose referer points at a foreign domain are dropped instead of counted, so a scraped or mirrored copy of your html cannot inflate your visitor numbers.
+* Tracking codes are now restricted to scalar values, which prevents malformed input (e.g. `?utm_source[]=x`) from producing a payload the API rejects.
+
+### Configuration
+
+The new block is off by default. Republish or add it manually to `config/simplestats-client.php`:
+
+```php
+'beacon' => [
+    'enabled' => env('SIMPLESTATS_BEACON_ENABLED', false),
+    'path' => env('SIMPLESTATS_BEACON_PATH', 'assets/v'),
+],
+
+```
+Existing installs whose published config predates this release are unaffected: without the key, no route is registered and nothing changes.
+
+The route is registered in the first group listed in `middleware_groups`, so it always carries the tracking middleware. Pick a path that looks like a regular asset: paths containing `track`, `stats`, `analytics`, `beacon`, `collect` or `pixel` are blocked by common ad blocker lists, and a path with a file extension may be cached by your CDN before it ever reaches your app.
+
+### Usage
+
+Add this to your layout, for example `resources/views/layout.antlers.html` in Statamic:
+
+```html
+<script>
+    (function () {
+        var params = new URLSearchParams(window.location.search);
+        params.set('page', window.location.pathname);
+        params.set('document_referer', document.referrer);
+        fetch('/assets/v?' + params.toString(), { keepalive: true });
+    })();
+</script>
+<noscript>
+    <img src="/assets/v" alt="" width="1" height="1" style="position:absolute">
+</noscript>
+
+```
+Note that `navigator.sendBeacon` does not work here: it sends a POST, and only GET requests are tracked.
+
+If your pages are cached but PHP still runs (Statamic's "half measure" strategy, for instance), you do not need any of this. Tracking keeps working unchanged and stays fully server-side, which is the better trade-off wherever it is an option.
+
+See the [static caching docs](https://simplestats.io/docs/static-caching.html) for the full walkthrough, including the caveats around strict `Referrer-Policy` headers, CDN exclusions and catch-all routes.
+
+### Note for anyone extending the middleware
+
+`CheckTracking::getPage()` and `CheckTracking::doTracking()` gained an optional parameter. If you subclass the middleware and override either method, add the parameter to your signature, otherwise PHP fails with an incompatible declaration.
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v5.0.3...v5.1.0
+
 ## v5.0.3 - 2026-07-20
 
 ### What's changed
@@ -63,6 +118,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
 
 
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -78,6 +134,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 
 
@@ -127,6 +184,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -167,6 +225,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
