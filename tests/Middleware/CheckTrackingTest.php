@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
@@ -593,4 +594,22 @@ it('falls back to session storage by default', function () {
         ->assertSessionHas('simplestats.tracking');
 
     assertVisitorTrackedWith('track_source', 'newsletter');
+});
+
+it('caches the device-detector regexes so only the first request pays the parse cost', function () {
+    $path = sys_get_temp_dir().'/simplestats-dd-cache-'.uniqid();
+    config(['cache.stores.file' => ['driver' => 'file', 'path' => $path]]);
+
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/test', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
+    ])->assertOk();
+
+    expect(File::isDirectory($path))->toBeTrue()
+        ->and(File::allFiles($path))->not->toBeEmpty();
+
+    File::deleteDirectory($path);
 });
