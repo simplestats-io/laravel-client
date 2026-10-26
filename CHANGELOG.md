@@ -2,6 +2,22 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v5.1.1 - 2026-10-26
+
+### Changed
+
+- The package is now licensed under the MIT license (previously GPL-3.0 in the LICENSE file, while `composer.json` already declared MIT). Thanks to all contributors who agreed to the relicensing.
+
+### What's Changed
+
+* Relicense under MIT by @Sairahcaz in https://github.com/simplestats-io/laravel-client/pull/37
+
+### New Contributors
+
+* @Sairahcaz made their first contribution in https://github.com/simplestats-io/laravel-client/pull/37
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v5.1.0...v5.1.1
+
 ## v5.1.0 - 2026-07-31
 
 ### What's changed
@@ -21,6 +37,7 @@ The new block is off by default. Republish or add it manually to `config/simples
     'enabled' => env('SIMPLESTATS_BEACON_ENABLED', false),
     'path' => env('SIMPLESTATS_BEACON_PATH', 'assets/v'),
 ],
+
 
 ```
 Existing installs whose published config predates this release are unaffected: without the key, no route is registered and nothing changes.
@@ -43,6 +60,7 @@ Add this to your layout, for example `resources/views/layout.antlers.html` in St
 <noscript>
     <img src="/assets/v" alt="" width="1" height="1" style="position:absolute">
 </noscript>
+
 
 ```
 Note that `navigator.sendBeacon` does not work here: it sends a POST, and only GET requests are tracked.
@@ -119,6 +137,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
 
 
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -134,6 +153,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 
 
@@ -185,6 +205,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -225,6 +246,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
