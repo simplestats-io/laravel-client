@@ -25,10 +25,10 @@ You can install the client package via composer:
 composer require simplestats-io/laravel-client
 ```
 
-You should publish the config file with:
+You should publish the config file with the install command:
 
 ```bash
-php artisan vendor:publish --tag="simplestats-client-config"
+php artisan simplestats-client:install
 ```
 
 This is the default content of the config file, tweak it to your needs:

@@ -18,6 +18,7 @@ use SimpleStatsIo\LaravelClient\Services\ApiConnector;
 use SimpleStatsIo\LaravelClient\Storage\CacheTrackingStorage;
 use SimpleStatsIo\LaravelClient\Storage\SessionTrackingStorage;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
+use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -34,7 +35,12 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
             ->name('simplestats-client')
             ->hasConfigFile()
             ->hasRoute('beacon')
-            ->hasMigration('add_visitor_hash_to_payments_table');
+            ->hasMigration('add_visitor_hash_to_payments_table')
+            ->hasInstallCommand(function (InstallCommand $command) {
+                $command
+                    ->publishConfigFile()
+                    ->askToStarRepoOnGitHub('simplestats-io/laravel-client');
+            });
     }
 
     /**
