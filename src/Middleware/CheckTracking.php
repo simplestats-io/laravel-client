@@ -118,7 +118,7 @@ class CheckTracking
      */
     protected function getPage(Request $request, ?array $beacon = null): ?string
     {
-        $page = $request->input('page') ?: $request->header('X-Page');
+        $page = $this->getForwardedPage($request);
 
         // The beacon endpoint itself is never an entry page. Without a usable
         // referer the page stays unknown, but the visit still counts.
@@ -127,6 +127,21 @@ class CheckTracking
         }
 
         return $page ?: $request->getPathInfo();
+    }
+
+    /**
+     * `page` is also Laravel's pagination parameter (`?page=2`, `?page[number]=2`),
+     * so the query value only counts as a forwarded entry page when it is a path.
+     */
+    protected function getForwardedPage(Request $request): ?string
+    {
+        $page = $request->input('page');
+
+        if (is_string($page) && Str::startsWith($page, '/')) {
+            return $page;
+        }
+
+        return $request->header('X-Page') ?: null;
     }
 
     /**

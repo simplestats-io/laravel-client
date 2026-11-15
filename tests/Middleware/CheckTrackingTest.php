@@ -488,6 +488,21 @@ it('reads page from query parameter', function () {
     assertVisitorTrackedWith('page_entry', '/pricing');
 });
 
+it('ignores a pagination page parameter and keeps the request path', function (string $query) {
+    Route::get('/blog', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    get('/blog?'.$query, [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
+    ])->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/blog');
+})->with([
+    'page number' => 'page=2',
+    'json:api style array' => 'page[number]=2&page[size]=10',
+]);
+
 it('dispatches trackVisitor only once per day per visitor', function () {
     Route::get('/page', fn () => true)->middleware(['web', CheckTracking::class]);
 
