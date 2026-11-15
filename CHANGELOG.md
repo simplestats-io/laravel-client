@@ -2,6 +2,20 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v5.2.3 - 2026-11-15
+
+### Changed
+
+- Error responses are never counted as a visit. This replaces the approach of v5.2.2, which reported browser navigations that ended in an error page: a request answered with a 4xx/5xx status no longer creates a visitor or an entry page. The visitor is tracked on their first successful request instead, with that page as the entry page.
+- `SimplestatsClient::trackVisitor()` no longer accepts the `$sendOnErrorResponse` argument introduced in v5.2.2.
+- The `TrackingStorage` contract has a new `forget()` method. This only matters if you bound your own implementation.
+
+### Fixed
+
+- A visitor whose first request ended in an error response is no longer skipped for the rest of the day.
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v5.2.2...v5.2.3
+
 ## v5.2.2 - 2026-11-15
 
 ### Fixed
@@ -70,6 +84,7 @@ The new block is off by default. Republish or add it manually to `config/simples
 
 
 
+
 ```
 Existing installs whose published config predates this release are unaffected: without the key, no route is registered and nothing changes.
 
@@ -91,6 +106,7 @@ Add this to your layout, for example `resources/views/layout.antlers.html` in St
 <noscript>
     <img src="/assets/v" alt="" width="1" height="1" style="position:absolute">
 </noscript>
+
 
 
 
@@ -175,6 +191,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
 
 
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -190,6 +207,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 
 
@@ -249,6 +267,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -289,6 +308,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
