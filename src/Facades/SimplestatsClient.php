@@ -5,7 +5,7 @@ namespace SimpleStatsIo\LaravelClient\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static void trackVisitor(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $visitor)
+ * @method static void trackVisitor(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $visitor, bool $sendOnErrorResponse = false)
  * @method static void trackLogin(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user)
  * @method static void trackUser(\SimpleStatsIo\LaravelClient\Contracts\TrackablePerson $user, bool $addLogin = false)
  * @method static void trackPayment(\SimpleStatsIo\LaravelClient\Contracts\TrackablePayment $payment)

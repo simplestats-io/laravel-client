@@ -60,7 +60,10 @@ class CheckTracking
 
         $this->trackingStorage->put($visitorHash, $cleanedTrackingData);
 
-        SimplestatsClient::trackVisitor(new Visitor($visitorHash));
+        // The visitor is already marked as tracked above, but deferred callbacks are
+        // dropped for 4xx/5xx responses. A person landing on an error page still is a
+        // visitor, while error responses to anything else are mostly scanner probes.
+        SimplestatsClient::trackVisitor(new Visitor($visitorHash), $this->isBrowserNavigation($request));
 
         return $next($request);
     }
@@ -258,6 +261,11 @@ class CheckTracking
         return Str::contains($request->header('Sec-Purpose', ''), ['prefetch', 'prerender'])
             || $request->header('Purpose') === 'prefetch'
             || $request->header('X-Moz') === 'prefetch';
+    }
+
+    protected function isBrowserNavigation(Request $request): bool
+    {
+        return $request->header('Sec-Fetch-Mode') === 'navigate';
     }
 
     protected function resolveIp(Request $request): ?string

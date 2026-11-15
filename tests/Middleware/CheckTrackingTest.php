@@ -503,6 +503,35 @@ it('ignores a pagination page parameter and keeps the request path', function (s
     'json:api style array' => 'page[number]=2&page[size]=10',
 ]);
 
+it('still sends the visitor when a browser navigation ends in an error response', function () {
+    Route::get('/missing', fn () => abort(404))->middleware(['web', CheckTracking::class]);
+
+    get('/missing', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
+    ])->assertNotFound();
+
+    flushDeferredLikeErrorResponse();
+
+    Http::assertSent(fn ($request) => $request->url() === config('simplestats-client.api_url').'stats-visitor'
+        && $request->data()['page_entry'] === '/missing');
+});
+
+it('drops the visitor when a non-navigation request ends in an error response', function () {
+    Route::get('/missing', fn () => abort(404))->middleware(['web', CheckTracking::class]);
+
+    get('/missing', [
+        'REMOTE_ADDR' => '8.8.8.8',
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'cors',
+    ])->assertNotFound();
+
+    flushDeferredLikeErrorResponse();
+
+    Http::assertNothingSent();
+});
+
 it('dispatches trackVisitor only once per day per visitor', function () {
     Route::get('/page', fn () => true)->middleware(['web', CheckTracking::class]);
 

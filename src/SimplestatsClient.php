@@ -50,7 +50,7 @@ class SimplestatsClient
         return app(TrackingStorage::class)->has($person->getKey());
     }
 
-    public function trackVisitor(TrackablePerson $visitor): void
+    public function trackVisitor(TrackablePerson $visitor, bool $sendOnErrorResponse = false): void
     {
         $trackingData = $this->getTrackingData();
 
@@ -71,7 +71,7 @@ class SimplestatsClient
 
         event(new VisitorTracked($visitor, $payload));
 
-        safeDefer(fn () => SendApiRequest::dispatch('stats-visitor', $payload));
+        safeDefer(fn () => SendApiRequest::dispatch('stats-visitor', $payload), always: $sendOnErrorResponse);
     }
 
     /**

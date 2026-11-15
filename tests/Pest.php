@@ -14,6 +14,13 @@ function flushDeferred(): void
     }
 }
 
+function flushDeferredLikeErrorResponse(): void
+{
+    if (class_exists(DeferredCallbackCollection::class)) {
+        app(DeferredCallbackCollection::class)->invokeWhen(fn ($callback) => $callback->always);
+    }
+}
+
 function assertVisitorTrackedWith(string $field, mixed $expected): void
 {
     flushDeferred();
