@@ -36,6 +36,9 @@ class PageViewBuffer
 
     protected const MAX_PENDING_VIEWS = 10000;
 
+    /** The API rejects an item with more views. */
+    protected const MAX_VIEWS_PER_ENTRY = 1000;
+
     /**
      * Beanstalkd rejects jobs above 64 KB by default, so a sealed batch is split well
      * below that, measured on the serialized, JSON-escaped form it takes in the payload.
@@ -102,12 +105,12 @@ class PageViewBuffer
             $key = $view['h'].'|'.$view['t'].'|'.$view['p'];
 
             if (isset($this->entries[$key])) {
-                $this->entries[$key]['n'] = min(1000, $this->entries[$key]['n'] + (int) $view['n']);
+                $this->entries[$key]['n'] = min(self::MAX_VIEWS_PER_ENTRY, $this->entries[$key]['n'] + (int) $view['n']);
             } else {
                 $this->entries[$key] = [
                     'h' => (string) $view['h'],
                     't' => (int) $view['t'],
-                    'n' => min(1000, (int) $view['n']),
+                    'n' => min(self::MAX_VIEWS_PER_ENTRY, (int) $view['n']),
                     'p' => (string) $view['p'],
                 ];
             }
