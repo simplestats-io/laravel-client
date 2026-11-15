@@ -4,17 +4,24 @@ namespace SimpleStatsIo\LaravelClient;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\Looping;
+use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use SimpleStatsIo\LaravelClient\Commands\StatusCommand;
 use SimpleStatsIo\LaravelClient\Controllers\BeaconController;
 use SimpleStatsIo\LaravelClient\Events\CustomPropertiesTracked;
+use SimpleStatsIo\LaravelClient\Listeners\FlushPageViewBuffer;
 use SimpleStatsIo\LaravelClient\Listeners\StoreVisitorProperties;
 use SimpleStatsIo\LaravelClient\Listeners\UserLoginListener;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use SimpleStatsIo\LaravelClient\Observers\PaymentObserver;
 use SimpleStatsIo\LaravelClient\Observers\UserObserver;
 use SimpleStatsIo\LaravelClient\Services\ApiConnector;
+use SimpleStatsIo\LaravelClient\Services\PageViewBuffer;
+use SimpleStatsIo\LaravelClient\Services\PageViewSettings;
 use SimpleStatsIo\LaravelClient\Storage\CacheTrackingStorage;
 use SimpleStatsIo\LaravelClient\Storage\SessionTrackingStorage;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
@@ -36,6 +43,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasRoute('beacon')
             ->hasMigration('add_visitor_hash_to_payments_table')
+            ->hasCommand(StatusCommand::class)
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->publishConfigFile()
@@ -117,6 +125,11 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
             return new ApiConnector(config('simplestats-client.api_url'), config('simplestats-client.api_token'));
         });
 
+        $this->app->singleton(PageViewSettings::class);
+
+        // A singleton on purpose: the buffer must outlive single jobs inside a worker.
+        $this->app->singleton(PageViewBuffer::class);
+
         $this->app->bind(TrackingStorage::class, function () {
             return match (config('simplestats-client.tracking_storage')) {
                 'cache' => new CacheTrackingStorage,
@@ -129,6 +142,14 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
     {
         Event::listen(config('simplestats-client.tracking_types.login.event'), [UserLoginListener::class, 'handle']);
         Event::listen(CustomPropertiesTracked::class, StoreVisitorProperties::class);
+
+        $pageViews = $this->app->make(PageViewSettings::class);
+
+        if ($pageViews->enabled() && $pageViews->bufferAllowed()) {
+            Event::listen(Looping::class, [FlushPageViewBuffer::class, 'onLooping']);
+            Event::listen(JobProcessing::class, [FlushPageViewBuffer::class, 'onJobProcessing']);
+            Event::listen(WorkerStopping::class, [FlushPageViewBuffer::class, 'onWorkerStopping']);
+        }
     }
 
     protected function registerObservers(): void

@@ -25,10 +25,12 @@ class ApiConnector
     /**
      * @throws ConnectionException
      */
-    public function request(string $route, array $payload, string $method = 'POST'): Response
+    public function request(string $route, array $payload, string $method = 'POST', ?int $timeout = null): Response
     {
         $method = strtolower($method);
 
-        return $this->httpClient->$method($route, $payload);
+        $httpClient = $timeout === null ? $this->httpClient : (clone $this->httpClient)->timeout($timeout);
+
+        return $httpClient->$method($route, $payload);
     }
 }
