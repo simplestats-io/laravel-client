@@ -7,7 +7,6 @@ use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Support\Str;
 use SimpleStatsIo\LaravelClient\Services\ApiConnector;
 use SimpleStatsIo\LaravelClient\Services\PageViewBuffer;
-use SimpleStatsIo\LaravelClient\Services\PageViewSettings;
 
 /**
  * One class for both roles: a "direct" job carries a single view from the web request
@@ -41,8 +40,6 @@ class SendPageViews extends SendApiRequest
             'views' => $views,
             'meta' => ['mode' => $mode],
         ]);
-
-        $this->queue = app(PageViewSettings::class)->queue();
 
         // A flush inside a customer job's transaction (or with after_commit queues) would
         // otherwise only be registered as a callback and silently vanish on rollback.

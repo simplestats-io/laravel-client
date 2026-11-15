@@ -82,7 +82,7 @@ class PageViewBuffer
     {
         return $this->lastLoopAt !== null
             && $this->now() - $this->lastLoopAt <= self::LOOP_STALE_AFTER_SECONDS
-            && $this->settings->bufferAllowed();
+            && $this->settings->canBuffer();
     }
 
     /**
@@ -146,7 +146,7 @@ class PageViewBuffer
 
         $age = $this->now() - $this->oldestAt;
 
-        return $age >= $this->settings->flushInterval()
+        return $age >= PageViewSettings::FLUSH_INTERVAL_SECONDS
             || ($beforeForeignJob && $age >= self::FOREIGN_JOB_FLUSH_AGE_SECONDS);
     }
 
@@ -307,10 +307,7 @@ class PageViewBuffer
         $this->lastHeartbeatAt = $now;
 
         try {
-            Cache::put(self::HEARTBEAT_CACHE_KEY, [
-                'at' => $now,
-                'buffering' => $this->settings->bufferAllowed(),
-            ], 86400);
+            Cache::put(self::HEARTBEAT_CACHE_KEY, ['at' => $now], 86400);
         } catch (Throwable $e) {
             $this->report($e);
         }

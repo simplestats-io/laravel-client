@@ -156,57 +156,18 @@ return [
      | SimpleStats Page Views
      |--------------------------------------------------------------------------
      |
-     | Counts the pages each tracked visitor opens and maps them to that visitor,
-     | so every channel shows how deep its visitors browse, plus your top pages.
+     | Counts the pages each visitor opens, so you see how deep visitors from
+     | each channel browse and which pages are viewed most. Pages behind a
+     | login and the "except" list above are not counted.
      |
-     | What counts: successful GET page loads, meaning full HTML documents,
-     | Inertia visits, Livewire wire:navigate, Turbo Drive and htmx boosted
-     | visits, and beacon or forwarded page pings. What never counts: partial
-     | reloads, polling, redirects, error pages, JSON, downloads, browser and
-     | Inertia prefetches, and visitors that were not tracked (bots, blocked
-     | IPs, the "except" list above). The same page twice in a row counts once.
-     |
-     | Every view is one small job on your queue. A long-running queue worker
-     | (queue:work, Horizon) bundles them into one API request per minute.
-     | Without such a worker every view is sent on its own. Run
-     | "php artisan simplestats:status" to see which mode you are in.
-     |
-     | - 'sync': page views are off while your queue connection is "sync",
-     |   "deferred" or "background", because every view would then cost an
-     |   API request inside your web request. Set it to true to send them anyway.
-     |
-     | - 'buffer': 'auto' bundles inside long-running queue workers (needs the
-     |   pcntl extension), 'none' always sends every view on its own.
-     |
-     | - 'flush_interval': seconds a view may wait in the worker before the
-     |   bundle is sent (5 to 300).
-     |
-     | - 'max_per_visitor_day': upper limit of counted views per visitor and day,
-     |   a safety net against loops, wallboards and scrapers.
-     |
-     | - 'queue': a dedicated queue for page views, so they never wait behind
-     |   long-running jobs. Defaults to the "queue" option above.
-     |
-     | - 'count_authenticated_routes': views on routes behind a login middleware
-     |   (auth, auth:*, Filament panels, ...) are app usage and do not count by
-     |   default. Logged-in users still count on all other pages.
-     |
-     | - 'only' / 'except': URI patterns (same syntax as the "except" list
-     |   above) to narrow down which pages count as views. They never affect
-     |   whether a visitor is tracked. An empty 'only' means all pages.
+     | Page views are sent through your queue. They stay off while your queue
+     | connection is "sync", because every view would then slow down the page
+     | request. Run "php artisan simplestats:status" to check your setup.
      |
      */
 
     'page_views' => [
         'enabled' => env('SIMPLESTATS_PAGE_VIEWS', true),
-        'sync' => env('SIMPLESTATS_PAGE_VIEWS_SYNC', false),
-        'buffer' => env('SIMPLESTATS_PAGE_VIEWS_BUFFER', 'auto'),
-        'flush_interval' => (int) env('SIMPLESTATS_PAGE_VIEWS_FLUSH_INTERVAL', 60),
-        'max_per_visitor_day' => 100,
-        'queue' => env('SIMPLESTATS_PAGE_VIEWS_QUEUE'),
-        'count_authenticated_routes' => false,
-        'only' => [],
-        'except' => [],
     ],
 
     /*

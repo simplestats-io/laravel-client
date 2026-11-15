@@ -118,14 +118,13 @@ it('counts the same page twice in a row only once, ignoring the query string', f
     expect(pushedPages())->toBe(['/pricing', '/', '/pricing']);
 });
 
-it('stops at the daily cap per visitor', function () {
-    config(['simplestats-client.page_views.max_per_visitor_day' => 2]);
+it('stops at 100 views per visitor and day', function () {
+    foreach (range(1, 101) as $i) {
+        get("/blog/post-{$i}", pvDocumentHeaders())->assertOk();
+    }
 
-    get('/', pvDocumentHeaders())->assertOk();
-    get('/pricing', pvDocumentHeaders())->assertOk();
-    get('/blog/hello', pvDocumentHeaders())->assertOk();
-
-    expect(pushedPages())->toBe(['/', '/pricing']);
+    expect(pushedPages())->toHaveCount(100)
+        ->and(pushedPages())->not->toContain('/blog/post-101');
 });
 
 it('normalizes the reported path', function () {
@@ -208,37 +207,12 @@ it('skips routes behind a login middleware but counts logged-in users elsewhere'
     expect(pushedPages())->toBe(['/', '/pricing']);
 });
 
-it('counts routes behind a login middleware when configured', function () {
-    config(['simplestats-client.page_views.count_authenticated_routes' => true]);
-
-    $this->actingAs(new User(['id' => 1]));
-
+it('applies the global except list to views', function () {
     get('/', pvDocumentHeaders())->assertOk();
-    get('/app', pvDocumentHeaders())->assertOk();
-    get('/panel', pvDocumentHeaders())->assertOk();
-
-    expect(pushedPages())->toBe(['/', '/app', '/panel']);
-});
-
-it('applies the except lists to views', function () {
-    config(['simplestats-client.page_views.except' => ['blog/*']]);
-
-    get('/', pvDocumentHeaders())->assertOk();
-    get('/blog/hello', pvDocumentHeaders())->assertOk();
     get('/admin/dashboard', pvDocumentHeaders())->assertOk();
     get('/pricing', pvDocumentHeaders())->assertOk();
 
     expect(pushedPages())->toBe(['/', '/pricing']);
-});
-
-it('limits views to the only list', function () {
-    config(['simplestats-client.page_views.only' => ['pricing', 'blog/*']]);
-
-    get('/', pvDocumentHeaders())->assertOk();
-    get('/pricing', pvDocumentHeaders())->assertOk();
-    get('/blog/hello', pvDocumentHeaders())->assertOk();
-
-    expect(pushedPages())->toBe(['/pricing', '/blog/hello']);
 });
 
 it('lets subclasses exclude views through doViewTracking', function () {
@@ -309,21 +283,13 @@ it('counts nothing when page views are disabled', function () {
     Queue::assertNotPushed(SendPageViews::class);
 });
 
-it('counts nothing on the sync queue without the opt-in', function (string $driver) {
+it('counts nothing on queues that run inside the web request', function (string $driver) {
     config(['queue.default' => 'inline', 'queue.connections.inline' => ['driver' => $driver]]);
 
     get('/', pvDocumentHeaders())->assertOk();
 
     Queue::assertNotPushed(SendPageViews::class);
 })->with(['sync', 'deferred', 'background']);
-
-it('counts on the sync queue with the opt-in', function () {
-    config(['queue.default' => 'sync', 'simplestats-client.page_views.sync' => true]);
-
-    get('/', pvDocumentHeaders())->assertOk();
-
-    expect(pushedPages())->toBe(['/']);
-});
 
 class ConvertToConflict
 {

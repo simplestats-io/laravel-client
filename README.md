@@ -190,57 +190,18 @@ return [
      | SimpleStats Page Views
      |--------------------------------------------------------------------------
      |
-     | Counts the pages each tracked visitor opens and maps them to that visitor,
-     | so every channel shows how deep its visitors browse, plus your top pages.
+     | Counts the pages each visitor opens, so you see how deep visitors from
+     | each channel browse and which pages are viewed most. Pages behind a
+     | login and the "except" list above are not counted.
      |
-     | What counts: successful GET page loads, meaning full HTML documents,
-     | Inertia visits, Livewire wire:navigate, Turbo Drive and htmx boosted
-     | visits, and beacon or forwarded page pings. What never counts: partial
-     | reloads, polling, redirects, error pages, JSON, downloads, browser and
-     | Inertia prefetches, and visitors that were not tracked (bots, blocked
-     | IPs, the "except" list above). The same page twice in a row counts once.
-     |
-     | Every view is one small job on your queue. A long-running queue worker
-     | (queue:work, Horizon) bundles them into one API request per minute.
-     | Without such a worker every view is sent on its own. Run
-     | "php artisan simplestats:status" to see which mode you are in.
-     |
-     | - 'sync': page views are off while your queue connection is "sync",
-     |   "deferred" or "background", because every view would then cost an
-     |   API request inside your web request. Set it to true to send them anyway.
-     |
-     | - 'buffer': 'auto' bundles inside long-running queue workers (needs the
-     |   pcntl extension), 'none' always sends every view on its own.
-     |
-     | - 'flush_interval': seconds a view may wait in the worker before the
-     |   bundle is sent (5 to 300).
-     |
-     | - 'max_per_visitor_day': upper limit of counted views per visitor and day,
-     |   a safety net against loops, wallboards and scrapers.
-     |
-     | - 'queue': a dedicated queue for page views, so they never wait behind
-     |   long-running jobs. Defaults to the "queue" option above.
-     |
-     | - 'count_authenticated_routes': views on routes behind a login middleware
-     |   (auth, auth:*, Filament panels, ...) are app usage and do not count by
-     |   default. Logged-in users still count on all other pages.
-     |
-     | - 'only' / 'except': URI patterns (same syntax as the "except" list
-     |   above) to narrow down which pages count as views. They never affect
-     |   whether a visitor is tracked. An empty 'only' means all pages.
+     | Page views are sent through your queue. They stay off while your queue
+     | connection is "sync", because every view would then slow down the page
+     | request. Run "php artisan simplestats:status" to check your setup.
      |
      */
 
     'page_views' => [
         'enabled' => env('SIMPLESTATS_PAGE_VIEWS', true),
-        'sync' => env('SIMPLESTATS_PAGE_VIEWS_SYNC', false),
-        'buffer' => env('SIMPLESTATS_PAGE_VIEWS_BUFFER', 'auto'),
-        'flush_interval' => (int) env('SIMPLESTATS_PAGE_VIEWS_FLUSH_INTERVAL', 60),
-        'max_per_visitor_day' => 100,
-        'queue' => env('SIMPLESTATS_PAGE_VIEWS_QUEUE'),
-        'count_authenticated_routes' => false,
-        'only' => [],
-        'except' => [],
     ],
 
     /*
@@ -320,7 +281,7 @@ return [
 
 ## Page Views
 
-Since v6 the client also counts the pages each tracked visitor opens, so every channel, campaign and entry page shows how deep its visitors browse, and you get a list of your top pages. A long-running queue worker (`queue:work`, Horizon) bundles the views into one API request per minute, without one every view is sent on its own. Check your setup with:
+Since v6 the client also counts the pages each visitor opens, so you see how deep visitors from each channel, campaign and entry page browse, and which pages are viewed most. Views go through your queue. A long-running queue worker (`queue:work`, Horizon) collects them and sends them once a minute, otherwise each view is sent on its own. Check your setup with:
 
 ```bash
 php artisan simplestats:status
@@ -330,15 +291,15 @@ The command exits with a non-zero code when something is broken (missing token, 
 
 ## Upgrading to v6
 
-v6 turns page views on by default. This also applies to config files published before v6, because the `page_views` block is merged in from the package defaults. What changes for you:
+v6 counts page views by default, also with a config file published before v6. What changes for you:
 
-- **One small queue job per page view.** A long-running queue worker bundles them, so the API sees about one request per worker and minute. With `queue:listen`, `queue:work --once`, Vapor or without the `pcntl` extension every view is sent on its own. You can move the jobs to a queue of their own with `SIMPLESTATS_PAGE_VIEWS_QUEUE`, and Horizon users may want to add `SimpleStatsIo\LaravelClient\Jobs\SendPageViews` to `horizon.silenced`.
-- **Nothing changes on the `sync` queue.** While your queue connection is `sync`, `deferred` or `background`, page views stay off, because every view would cost an API request inside your web request. Set `SIMPLESTATS_PAGE_VIEWS_SYNC=true` to send them anyway (one request per view, no retries).
-- **Page views do not count against your monthly event quota.** Once the quota is reached, the client pauses sending views until the API accepts them again.
-- **Logged-in users count on public pages only.** Routes behind a login middleware (`auth`, `auth:*`, every subclass of Laravel's `Authenticate` middleware, e.g. Filament panels) are skipped unless you set `count_authenticated_routes` to `true`.
-- **Your tests may see new jobs.** With a real queue connection in your test environment, every tracked GET request now also pushes a `SendPageViews` job. Assertions like `Queue::assertNothingPushed()` may need `SIMPLESTATS_PAGE_VIEWS=false` in your `phpunit.xml`.
-- **Registrations, custom events and payments keep their visitor after midnight.** With the `session` tracking storage they now reference the visitor hash the visit was first reported with, instead of a hash recomputed per request, which the API did not know after midnight or an IP change.
-- If you override `CheckTracking::handle()` without calling the parent, no page views are counted. To exclude further requests, override `doViewTracking()` or use the `page_views.except` option.
+- **One small queue job per page view.** A long-running queue worker collects them and sends one API request per minute. With `queue:listen`, `queue:work --once`, Vapor or without the `pcntl` extension each view is sent on its own. Horizon users may want to add `SimpleStatsIo\LaravelClient\Jobs\SendPageViews` to `horizon.silenced`.
+- **Nothing changes on the `sync` queue.** While your queue connection is `sync`, `deferred` or `background`, page views stay off, because every view would slow down the page request.
+- **Page views do not count against your monthly event quota.** Once the quota is reached, the client stops sending views for a while.
+- **Pages behind a login are not counted.** Routes with a login middleware (`auth`, `auth:*`, every subclass of Laravel's `Authenticate` middleware, e.g. Filament panels) are app usage, not page views. Logged-in users still count on all other pages. The `except` list applies to page views too.
+- **Your tests may see new jobs.** With a real queue connection in your test environment, every tracked page request now also pushes a `SendPageViews` job. Assertions like `Queue::assertNothingPushed()` may need `SIMPLESTATS_PAGE_VIEWS=false` in your `phpunit.xml`.
+- **Registrations, custom events and payments keep their visitor after midnight.** With the `session` tracking storage they now use the visitor hash the visit was first reported with, instead of a hash recomputed per request that the API did not know after midnight or an IP change.
+- If you override `CheckTracking::handle()` without calling the parent, no page views are counted. To skip further requests, override `doViewTracking()`.
 
 To turn page views off, set `SIMPLESTATS_PAGE_VIEWS=false`.
 

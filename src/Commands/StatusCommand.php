@@ -47,7 +47,7 @@ class StatusCommand extends Command
         $this->detail('Queue connection', sprintf('%s (driver "%s", queue "%s")',
             $settings->queueConnection() ?? 'none',
             $settings->queueDriver() ?? 'unknown',
-            $settings->queue() ?? 'default',
+            config('simplestats-client.queue') ?: 'default',
         ));
 
         $this->pageViews($settings);
@@ -71,24 +71,18 @@ class StatusCommand extends Command
 
         if (! $settings->enabled()) {
             $this->detail('Page views', sprintf(
-                'off on the "%s" queue, set SIMPLESTATS_PAGE_VIEWS_SYNC=true to send them anyway',
+                'off, the "%s" queue would send every view inside the web request. Use a real queue to count them',
                 $settings->queueDriver(),
             ), 'comment');
 
             return;
         }
 
-        if ($settings->runsOnSyncQueue()) {
-            $this->detail('Page views', sprintf('enabled, sent inside the web request ("%s" queue, no retries)', $settings->queueDriver()), 'comment');
-
-            return;
-        }
-
         $this->detail('Page views', 'enabled', 'info');
-        $this->detail('Bundling', ...$this->bundling($settings));
+        $this->detail('Sending', ...$this->sending($settings));
 
         try {
-            $this->detail('Pending jobs', (string) Queue::connection($settings->queueConnection())->size($settings->queue()));
+            $this->detail('Pending jobs', (string) Queue::connection($settings->queueConnection())->size(config('simplestats-client.queue')));
         } catch (Throwable) {
             $this->detail('Pending jobs', 'unknown (queue size not available)');
         }
@@ -103,24 +97,20 @@ class StatusCommand extends Command
     /**
      * @return array{0: string, 1: string}
      */
-    protected function bundling(PageViewSettings $settings): array
+    protected function sending(PageViewSettings $settings): array
     {
-        if (config('simplestats-client.page_views.buffer') === 'none') {
-            return ['off (buffer "none"), one API request per view', 'comment'];
-        }
-
-        if (! extension_loaded('pcntl')) {
-            return ['off (no pcntl extension), one API request per view', 'comment'];
+        if (! $settings->canBuffer()) {
+            return ['one API request per view (no pcntl extension)', 'comment'];
         }
 
         $heartbeat = $this->cached(PageViewBuffer::HEARTBEAT_CACHE_KEY);
         $seenAt = is_array($heartbeat) && is_numeric($heartbeat['at'] ?? null) ? (int) $heartbeat['at'] : null;
 
         if ($seenAt === null || now()->getTimestamp() - $seenAt > self::WORKER_SEEN_WITHIN_SECONDS) {
-            return ['unbundled, no long-running queue worker seen in the last 5 minutes', 'comment'];
+            return ['one API request per view, no long-running queue worker seen in the last 5 minutes', 'comment'];
         }
 
-        return [sprintf('active, queue worker seen %d s ago, flush every %d s', now()->getTimestamp() - $seenAt, $settings->flushInterval()), 'info'];
+        return [sprintf('collected by the queue worker (seen %d s ago), sent once a minute', now()->getTimestamp() - $seenAt), 'info'];
     }
 
     /**

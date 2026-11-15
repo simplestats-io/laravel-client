@@ -145,7 +145,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
 
         $pageViews = $this->app->make(PageViewSettings::class);
 
-        if ($pageViews->enabled() && $pageViews->bufferAllowed()) {
+        if ($pageViews->enabled() && $pageViews->canBuffer()) {
             Event::listen(Looping::class, [FlushPageViewBuffer::class, 'onLooping']);
             Event::listen(JobProcessing::class, [FlushPageViewBuffer::class, 'onJobProcessing']);
             Event::listen(WorkerStopping::class, [FlushPageViewBuffer::class, 'onWorkerStopping']);

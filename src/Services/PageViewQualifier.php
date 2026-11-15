@@ -22,7 +22,6 @@ class PageViewQualifier
     protected const INERTIA = 'inertia';
 
     public function __construct(
-        protected PageViewSettings $settings,
         protected Router $router,
     ) {}
 
@@ -68,22 +67,15 @@ class PageViewQualifier
         return Str::startsWith(Str::lower((string) $response->headers->get('Content-Type', '')), 'text/html');
     }
 
+    /**
+     * Login routes are app usage, not page views, and never count.
+     */
     public function inScope(Request $request, string $page): bool
     {
         $path = rawurldecode(trim($page, '/') ?: '/');
 
-        if ($this->matchesAny($path, (array) config('simplestats-client.except', []))
-            || $this->matchesAny($path, $this->settings->except())) {
-            return false;
-        }
-
-        $only = $this->settings->only();
-
-        if ($only !== [] && ! $this->matchesAny($path, $only)) {
-            return false;
-        }
-
-        return $this->settings->countsAuthenticatedRoutes() || ! $this->isAuthenticatedRoute($request);
+        return ! $this->matchesAny($path, (array) config('simplestats-client.except', []))
+            && ! $this->isAuthenticatedRoute($request);
     }
 
     /**
@@ -141,9 +133,9 @@ class PageViewQualifier
     }
 
     /**
-     * Routes behind a login middleware are app usage, not page views. Resolved from the
-     * route middleware (aliases and groups expanded) instead of auth()->check(), which
-     * would log in remember-cookie users on public pages and fire a Login event.
+     * Resolved from the route middleware (aliases and groups expanded) instead of
+     * auth()->check(), which would log in remember-cookie users on public pages and
+     * fire a Login event.
      */
     protected function isAuthenticatedRoute(Request $request): bool
     {

@@ -167,7 +167,7 @@ class CheckTracking
             $anchorHash = $this->getAnchorHash($visitorHash, $day);
 
             if ($anchorHash === null
-                || ! app(PageViewState::class)->count($request, $anchorHash, $day, $page, $settings->maxPerVisitorDay())) {
+                || ! app(PageViewState::class)->count($request, $anchorHash, $day, $page, PageViewSettings::MAX_PER_VISITOR_DAY)) {
                 return;
             }
 

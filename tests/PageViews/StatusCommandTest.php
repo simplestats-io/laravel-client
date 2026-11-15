@@ -13,11 +13,11 @@ beforeEach(function () {
 
 it('reports a healthy setup with an active worker', function () {
     config(['queue.default' => 'database']);
-    Cache::put(PageViewBuffer::HEARTBEAT_CACHE_KEY, ['at' => now()->getTimestamp() - 12, 'buffering' => true], 3600);
+    Cache::put(PageViewBuffer::HEARTBEAT_CACHE_KEY, ['at' => now()->getTimestamp() - 12], 3600);
 
     $this->artisan('simplestats:status')
         ->expectsOutputToContain('reachable, token valid')
-        ->expectsOutputToContain(extension_loaded('pcntl') ? 'queue worker seen 12 s ago' : 'pcntl')
+        ->expectsOutputToContain(extension_loaded('pcntl') ? 'seen 12 s ago' : 'pcntl')
         ->assertSuccessful();
 
     Http::assertSent(fn ($request) => str_ends_with($request->url(), 'stats-views') && $request['views'] === []);
@@ -27,15 +27,15 @@ it('shows page views as unbundled without a recent worker', function () {
     config(['queue.default' => 'database']);
 
     $this->artisan('simplestats:status')
-        ->expectsOutputToContain('unbundled')
+        ->expectsOutputToContain('no long-running queue worker seen')
         ->assertSuccessful();
 });
 
-it('hints at the sync opt-in without failing', function () {
+it('explains why page views are off on the sync queue without failing', function () {
     config(['queue.default' => 'sync']);
 
     $this->artisan('simplestats:status')
-        ->expectsOutputToContain('SIMPLESTATS_PAGE_VIEWS_SYNC=true')
+        ->expectsOutputToContain('Use a real queue')
         ->assertSuccessful();
 });
 
