@@ -12,6 +12,7 @@ use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\Services\CustomPropertiesResolver;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
 use SimpleStatsIo\LaravelClient\Visitor;
+use Symfony\Component\HttpFoundation\Response;
 
 class CheckTracking
 {
@@ -60,12 +61,18 @@ class CheckTracking
 
         $this->trackingStorage->put($visitorHash, $cleanedTrackingData);
 
-        // The visitor is already marked as tracked above, but deferred callbacks are
-        // dropped for 4xx/5xx responses. A person landing on an error page still is a
-        // visitor, while error responses to anything else are mostly scanner probes.
-        SimplestatsClient::trackVisitor(new Visitor($visitorHash), $this->isBrowserNavigation($request));
+        SimplestatsClient::trackVisitor(new Visitor($visitorHash));
 
-        return $next($request);
+        $response = $next($request);
+
+        // Laravel drops the deferred visitor event for 4xx/5xx responses, so the
+        // visitor must not stay marked as tracked either. Otherwise a person landing
+        // on an error page would be skipped for the rest of the day.
+        if ($response instanceof Response && $response->getStatusCode() >= 400) {
+            $this->trackingStorage->forget($visitorHash);
+        }
+
+        return $response;
     }
 
     protected function getReferer(Request $request): ?string
@@ -261,11 +268,6 @@ class CheckTracking
         return Str::contains($request->header('Sec-Purpose', ''), ['prefetch', 'prerender'])
             || $request->header('Purpose') === 'prefetch'
             || $request->header('X-Moz') === 'prefetch';
-    }
-
-    protected function isBrowserNavigation(Request $request): bool
-    {
-        return $request->header('Sec-Fetch-Mode') === 'navigate';
     }
 
     protected function resolveIp(Request $request): ?string

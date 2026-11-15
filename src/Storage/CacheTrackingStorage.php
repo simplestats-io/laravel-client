@@ -31,4 +31,9 @@ class CacheTrackingStorage implements TrackingStorage
     {
         return Cache::has(self::CACHE_KEY_PREFIX.$identifier);
     }
+
+    public function forget(string $identifier): void
+    {
+        Cache::forget(self::CACHE_KEY_PREFIX.$identifier);
+    }
 }

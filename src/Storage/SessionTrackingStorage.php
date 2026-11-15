@@ -26,4 +26,9 @@ class SessionTrackingStorage implements TrackingStorage
     {
         return ! empty(session(self::SESSION_KEY));
     }
+
+    public function forget(string $identifier): void
+    {
+        session()->forget(self::SESSION_KEY);
+    }
 }

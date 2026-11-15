@@ -17,4 +17,6 @@ interface TrackingStorage
     public function get(?string $identifier): Collection;
 
     public function has(string $identifier): bool;
+
+    public function forget(string $identifier): void;
 }
