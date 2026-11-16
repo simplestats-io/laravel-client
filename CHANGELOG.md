@@ -2,6 +2,31 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v6.0.0 - 2026-11-16
+
+### Added
+
+- **Page Views.** The client now counts the pages your visitors open. With a long-running queue worker it sends them once a minute in a single request. Page views do not count against your monthly event quota. Check your setup with `php artisan simplestats:status`. See [Page Views](https://simplestats.io/docs/how-to-track-page-views.html).
+- New `simplestats:status` command. It shows tracking, queue and page view state, and exits with a non-zero code when something is broken.
+
+### Fixed
+
+- With the `session` tracking storage, registrations, custom events and payments keep their visitor after midnight or an IP change.
+
+### Upgrade notes
+
+Page views are **on by default**, also with a config file published before v6. Set `SIMPLESTATS_PAGE_VIEWS=false` to turn them off.
+
+- Page views are sent through your queue as one small job per view. On the `sync`, `deferred` and `background` queues they stay off.
+- Pages behind a login (`auth` middleware, Filament panels) are not counted.
+- Horizon users may want to add `SimpleStatsIo\LaravelClient\Jobs\SendPageViews` to `horizon.silenced`.
+- Tests with a real queue connection now also see `SendPageViews` jobs. Assertions like `Queue::assertNothingPushed()` may need `SIMPLESTATS_PAGE_VIEWS=false` in your `phpunit.xml`.
+- If you override `CheckTracking::handle()` without calling the parent, no page views are counted. Override `doViewTracking()` instead.
+
+All details are in [Upgrading to v6](https://github.com/simplestats-io/laravel-client#upgrading-to-v6).
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v5.2.3...v6.0.0
+
 ## v5.2.3 - 2026-11-15
 
 ### Changed
@@ -85,6 +110,7 @@ The new block is off by default. Republish or add it manually to `config/simples
 
 
 
+
 ```
 Existing installs whose published config predates this release are unaffected: without the key, no route is registered and nothing changes.
 
@@ -106,6 +132,7 @@ Add this to your layout, for example `resources/views/layout.antlers.html` in St
 <noscript>
     <img src="/assets/v" alt="" width="1" height="1" style="position:absolute">
 </noscript>
+
 
 
 
@@ -192,6 +219,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
 
 
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -207,6 +235,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 
 
@@ -268,6 +297,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -308,6 +338,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
