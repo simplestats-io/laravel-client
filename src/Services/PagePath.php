@@ -41,12 +41,24 @@ class PagePath
             $path = Str::beforeLast($path, '/');
         }
 
-        if (Str::endsWith(Str::lower($path), self::NON_PAGE_EXTENSIONS)) {
+        if (self::hasNonPageExtension($path)) {
             return null;
         }
 
         // The backend cuts at 252 characters plus "...", so any limit above that
         // yields the same stored page while keeping batches small.
         return Str::substr($path, 0, self::MAX_LENGTH);
+    }
+
+    /**
+     * Matches only a dotted extension of the last path segment, so slugs that merely end in
+     * those letters (e.g. "/accept-json", "/commit-hash", "/holding-you-back") stay pages.
+     */
+    protected static function hasNonPageExtension(string $path): bool
+    {
+        $lastSegment = Str::lower(Str::afterLast($path, '/'));
+        $extensions = array_map(fn (string $extension): string => '.'.$extension, self::NON_PAGE_EXTENSIONS);
+
+        return Str::endsWith($lastSegment, $extensions);
     }
 }
