@@ -187,6 +187,25 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | SimpleStats Page Views
+     |--------------------------------------------------------------------------
+     |
+     | Counts the pages each visitor opens, so you see how deep visitors from
+     | each channel browse and which pages are viewed most. Pages behind a
+     | login and the "except" list above are not counted.
+     |
+     | Page views are sent through your queue. They stay off while your queue
+     | connection is "sync", because every view would then slow down the page
+     | request. Run "php artisan simplestats:status" to check your setup.
+     |
+     */
+
+    'page_views' => [
+        'enabled' => env('SIMPLESTATS_PAGE_VIEWS', true),
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
      | SimpleStats Tracking Codes
      |--------------------------------------------------------------------------
      |
@@ -259,6 +278,30 @@ return [
     ],
 ];
 ```
+
+## Page Views
+
+Since v6 the client also counts the pages each visitor opens, so you see how deep visitors from each channel, campaign and entry page browse, and which pages are viewed most. Views go through your queue. A long-running queue worker (`queue:work`, Horizon) collects them and sends them once a minute, otherwise each view is sent on its own. Check your setup with:
+
+```bash
+php artisan simplestats:status
+```
+
+The command exits with a non-zero code when something is broken (missing token, API not reachable), so it also works as a health check.
+
+## Upgrading to v6
+
+v6 counts page views by default, also with a config file published before v6. What changes for you:
+
+- **One small queue job per page view.** A long-running queue worker collects them and sends one API request per minute. With `queue:listen`, `queue:work --once`, Vapor or without the `pcntl` extension each view is sent on its own. Horizon users may want to add `SimpleStatsIo\LaravelClient\Jobs\SendPageViews` to `horizon.silenced`.
+- **Nothing changes on the `sync` queue.** While your queue connection is `sync`, `deferred` or `background`, page views stay off, because every view would slow down the page request.
+- **Page views do not count against your monthly event quota.** Once the quota is reached, the client stops sending views for a while.
+- **Pages behind a login are not counted.** Routes with a login middleware (`auth`, `auth:*`, every subclass of Laravel's `Authenticate` middleware, e.g. Filament panels) are app usage, not page views. Logged-in users still count on all other pages. The `except` list applies to page views too.
+- **Your tests may see new jobs.** With a real queue connection in your test environment, every tracked page request now also pushes a `SendPageViews` job. Assertions like `Queue::assertNothingPushed()` may need `SIMPLESTATS_PAGE_VIEWS=false` in your `phpunit.xml`.
+- **Registrations, custom events and payments keep their visitor after midnight.** With the `session` tracking storage they now use the visitor hash the visit was first reported with, instead of a hash recomputed per request that the API did not know after midnight or an IP change.
+- If you override `CheckTracking::handle()` without calling the parent, no page views are counted. To skip further requests, override `doViewTracking()`.
+
+To turn page views off, set `SIMPLESTATS_PAGE_VIEWS=false`.
 
 ## Bot Detection
 

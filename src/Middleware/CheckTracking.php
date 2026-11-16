@@ -2,6 +2,7 @@
 
 namespace SimpleStatsIo\LaravelClient\Middleware;
 
+use Carbon\CarbonInterface;
 use Closure;
 use DeviceDetector\DeviceDetector;
 use Illuminate\Http\Request;
@@ -10,12 +11,24 @@ use SimpleStatsIo\LaravelClient\Cache\DeviceDetectorCache;
 use SimpleStatsIo\LaravelClient\Controllers\BeaconController;
 use SimpleStatsIo\LaravelClient\Facades\SimplestatsClient;
 use SimpleStatsIo\LaravelClient\Services\CustomPropertiesResolver;
+use SimpleStatsIo\LaravelClient\Services\PagePath;
+use SimpleStatsIo\LaravelClient\Services\PageViewQualifier;
+use SimpleStatsIo\LaravelClient\Services\PageViewSettings;
+use SimpleStatsIo\LaravelClient\Services\PageViewState;
+use SimpleStatsIo\LaravelClient\Storage\CacheTrackingStorage;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
 use SimpleStatsIo\LaravelClient\Visitor;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class CheckTracking
 {
+    public const PENDING_PAGE_VIEW = 'simplestats.pending_page_view';
+
+    protected const ANCHOR_HASH = 'anchor_hash';
+
+    protected const ANCHOR_DAY = 'anchor_day';
+
     public function __construct(
         protected TrackingStorage $trackingStorage,
         protected CustomPropertiesResolver $customPropertiesResolver,
@@ -23,17 +36,25 @@ class CheckTracking
 
     public function handle(Request $request, Closure $next)
     {
+        // Captured once: apps may switch the timezone during the request, and the
+        // visitor day must be the same one the hash was built with.
+        $requestTime = now();
+
         $ip = $this->resolveIp($request);
         $userAgent = $request->userAgent();
 
-        $visitorHash = SimplestatsClient::createVisitorHash(now(), $ip, $userAgent);
+        $visitorHash = SimplestatsClient::createVisitorHash($requestTime, $ip, $userAgent);
 
-        SimplestatsClient::setVisitorHash($visitorHash);
+        SimplestatsClient::setVisitorHash($this->getContextVisitorHash($visitorHash));
 
         $beacon = $this->getBeaconContext($request);
 
         if (! $this->doTracking($request, $ip, $visitorHash, $beacon)) {
-            return $next($request);
+            $response = $next($request);
+
+            $this->observePageView($request, $response, $visitorHash, $beacon, $requestTime);
+
+            return $response;
         }
 
         $collectedTrackingData = collect(config('simplestats-client.tracking_codes'))->mapWithKeys(
@@ -59,6 +80,11 @@ class CheckTracking
         $cleanedTrackingData->put('user_agent', $userAgent ? urlencode($userAgent) : null);
         $cleanedTrackingData->put('properties', $this->customPropertiesResolver->forVisitor($request));
 
+        // The hash the visitor event is sent with. In session mode the hash computed per
+        // request changes after midnight or an IP change, the API only knows this one.
+        $cleanedTrackingData->put(self::ANCHOR_HASH, $visitorHash);
+        $cleanedTrackingData->put(self::ANCHOR_DAY, $requestTime->format('Y-m-d'));
+
         $this->trackingStorage->put($visitorHash, $cleanedTrackingData);
 
         SimplestatsClient::trackVisitor(new Visitor($visitorHash));
@@ -72,7 +98,119 @@ class CheckTracking
             $this->trackingStorage->forget($visitorHash);
         }
 
+        $this->observePageView($request, $response, $visitorHash, $beacon, $requestTime);
+
         return $response;
+    }
+
+    /**
+     * Queued only now, after the response was sent, and regardless of its status: Inertia
+     * turns a counted visit into a 409 only after this middleware has seen it.
+     *
+     * No return type on purpose, so subclasses with an own untyped terminate() stay compatible.
+     */
+    public function terminate(Request $request, $response)
+    {
+        $view = $request->attributes->get(self::PENDING_PAGE_VIEW);
+
+        if (! is_array($view)) {
+            return;
+        }
+
+        $request->attributes->remove(self::PENDING_PAGE_VIEW);
+
+        try {
+            SimplestatsClient::trackPageView($view['hash'], $view['page'], $view['time']);
+        } catch (Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
+     * Override to exclude further requests from page views. Only called for requests
+     * that already qualify as a view of a tracked visitor.
+     */
+    protected function doViewTracking(Request $request, Response $response): bool
+    {
+        return true;
+    }
+
+    /**
+     * Decided before the response leaves this middleware, because StartSession saves the
+     * session right after it, so the dedup state would be lost in terminate().
+     *
+     * @param  array{path: string|null, query: array<string, mixed>, hotlinked: bool}|null  $beacon
+     */
+    protected function observePageView(Request $request, mixed $response, string $visitorHash, ?array $beacon, CarbonInterface $requestTime): void
+    {
+        try {
+            $settings = app(PageViewSettings::class);
+
+            if (! $response instanceof Response || ($beacon['hotlinked'] ?? false) || ! $settings->enabled()) {
+                return;
+            }
+
+            $qualifier = app(PageViewQualifier::class);
+            $isPing = $beacon !== null || $this->getForwardedPage($request) !== null;
+
+            if (! $qualifier->qualifies($request, $response, $isPing)) {
+                return;
+            }
+
+            $page = PagePath::normalize($this->getPage($request, $beacon));
+
+            if ($page === null || ! $qualifier->inScope($request, $page) || ! $this->doViewTracking($request, $response)) {
+                return;
+            }
+
+            $day = $requestTime->format('Y-m-d');
+            $anchorHash = $this->getAnchorHash($visitorHash, $day);
+
+            if ($anchorHash === null
+                || ! app(PageViewState::class)->count($request, $anchorHash, $day, $page, PageViewSettings::MAX_PER_VISITOR_DAY)) {
+                return;
+            }
+
+            $request->attributes->set(self::PENDING_PAGE_VIEW, [
+                'hash' => $anchorHash,
+                'page' => $page,
+                'time' => $requestTime,
+            ]);
+        } catch (Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
+     * Views only count on the day of the visitor event and always carry its hash, so the
+     * API can match them to the visitor. Never tracked visitors (bots, blocked IPs, except
+     * routes) have no anchor and therefore no views.
+     */
+    protected function getAnchorHash(string $visitorHash, string $day): ?string
+    {
+        $trackingData = $this->trackingStorage->get($visitorHash);
+        $anchorHash = $trackingData[self::ANCHOR_HASH] ?? null;
+
+        return is_string($anchorHash) && ($trackingData[self::ANCHOR_DAY] ?? null) === $day
+            ? $anchorHash
+            : null;
+    }
+
+    /**
+     * In session mode registrations, events and payments of a visitor should reference
+     * the hash its visitor event was sent with, also after midnight or an IP change.
+     * The cache storage is keyed by the computed hash, so both are always equal there
+     * and the extra cache read on every request is skipped.
+     */
+    protected function getContextVisitorHash(string $visitorHash): string
+    {
+        if ($this->trackingStorage instanceof CacheTrackingStorage) {
+            return $visitorHash;
+        }
+
+        $anchorHash = $this->trackingStorage->get($visitorHash)[self::ANCHOR_HASH] ?? null;
+
+        return is_string($anchorHash) && $anchorHash !== '' ? $anchorHash : $visitorHash;
     }
 
     protected function getReferer(Request $request): ?string

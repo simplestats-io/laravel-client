@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
@@ -41,12 +42,14 @@ class SendApiRequest implements ShouldQueue
     public function handle(ApiConnector $apiConnector): void
     {
         try {
-            $response = $apiConnector->request($this->route, $this->payload, $this->method);
+            $response = $this->send($apiConnector);
         } catch (ConnectionException $e) {
             $response = null;
         }
 
         if ($response && $response->successful()) {
+            $this->succeeded($response);
+
             return;
         }
 
@@ -76,6 +79,16 @@ class SendApiRequest implements ShouldQueue
 
         $this->releaseWithBackoff($attempt);
     }
+
+    /**
+     * @throws ConnectionException
+     */
+    protected function send(ApiConnector $apiConnector): Response
+    {
+        return $apiConnector->request($this->route, $this->payload, $this->method);
+    }
+
+    protected function succeeded(Response $response): void {}
 
     protected function logFinalFailure($response): void
     {

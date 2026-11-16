@@ -153,6 +153,25 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | SimpleStats Page Views
+     |--------------------------------------------------------------------------
+     |
+     | Counts the pages each visitor opens, so you see how deep visitors from
+     | each channel browse and which pages are viewed most. Pages behind a
+     | login and the "except" list above are not counted.
+     |
+     | Page views are sent through your queue. They stay off while your queue
+     | connection is "sync", because every view would then slow down the page
+     | request. Run "php artisan simplestats:status" to check your setup.
+     |
+     */
+
+    'page_views' => [
+        'enabled' => env('SIMPLESTATS_PAGE_VIEWS', true),
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
      | SimpleStats Tracking Codes
      |--------------------------------------------------------------------------
      |

@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Context;
 use InvalidArgumentException;
 use SimpleStatsIo\LaravelClient\Contracts\TrackablePayment;
@@ -18,7 +19,9 @@ use SimpleStatsIo\LaravelClient\Events\PaymentTracked;
 use SimpleStatsIo\LaravelClient\Events\UserTracked;
 use SimpleStatsIo\LaravelClient\Events\VisitorTracked;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
+use SimpleStatsIo\LaravelClient\Jobs\SendPageViews;
 use SimpleStatsIo\LaravelClient\Services\CustomPropertiesResolver;
+use SimpleStatsIo\LaravelClient\Services\PageViewSettings;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
 
 class SimplestatsClient
@@ -72,6 +75,24 @@ class SimplestatsClient
         event(new VisitorTracked($visitor, $payload));
 
         safeDefer(fn () => SendApiRequest::dispatch('stats-visitor', $payload));
+    }
+
+    /**
+     * The view is reported with the minute bucket of the request. $visitorHash must be
+     * the hash the visitor event was sent with, otherwise the API drops the view.
+     */
+    public function trackPageView(string $visitorHash, string $page, CarbonInterface $time): void
+    {
+        if (! app(PageViewSettings::class)->enabled()) {
+            return;
+        }
+
+        Bus::dispatch(new SendPageViews([[
+            'h' => $visitorHash,
+            't' => intdiv($time->getTimestamp(), 60) * 60,
+            'n' => 1,
+            'p' => $page,
+        ]]));
     }
 
     /**
