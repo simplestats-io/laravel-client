@@ -1,9 +1,11 @@
 <?php
 
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
+use SimpleStatsIo\LaravelClient\Services\SkipRules;
 use SimpleStatsIo\LaravelClient\Tests\Resolvers\AbTestPropertiesResolver;
 use SimpleStatsIo\LaravelClient\Tests\Resolvers\InvalidPropertiesResolver;
 use SimpleStatsIo\LaravelClient\Tests\Resolvers\ThrowingVisitorPropertiesResolver;
@@ -39,6 +41,55 @@ it('handles referer', function ($referer, $expected) {
     'handles www.fake.test' => ['www.fake.test', 'fake.test'],
     'handles fake.test' => ['fake.test', 'fake.test'],
 ]);
+
+it('skips visitors with a referer the API flagged as spam', function () {
+    app()->instance(SkipRules::class, new SkipRules('array'));
+
+    // The catch-all fake from beforeEach would answer first, so start from a fresh factory.
+    Http::swap(new Factory);
+    Http::fake([
+        $this->apiUrl.'stats-visitor' => Http::response([
+            'message' => 'Bots are not allowed',
+            'skip' => [['type' => 'referer', 'value' => 'spam.test', 'ttl' => 3600]],
+        ]),
+    ]);
+
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    $visit = fn (string $ip) => $this->withServerVariables(['REMOTE_ADDR' => $ip])->get('/test', [
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
+        'referer' => 'https://www.spam.test/page',
+    ])->assertOk();
+
+    $visit('203.0.113.10');
+    flushDeferred();
+
+    $visit('203.0.113.20');
+    flushDeferred();
+
+    Http::assertSentCount(1);
+});
+
+it('keeps a skipped spam visitor untracked on its next requests without a referer', function () {
+    app()->instance(SkipRules::class, new SkipRules('array'));
+    app(SkipRules::class)->remember([['type' => 'referer', 'value' => 'spam.test', 'ttl' => 3600]]);
+
+    Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);
+
+    $headers = [
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'sec_fetch_mode' => 'navigate',
+    ];
+
+    get('/test', [...$headers, 'referer' => 'https://shop.spam.test/'])->assertOk();
+    flushDeferred();
+
+    get('/test', $headers)->assertOk();
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
 
 it('does not track bots', function () {
     Route::get('/test', fn () => true)->middleware(['web', CheckTracking::class]);

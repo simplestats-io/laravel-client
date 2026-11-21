@@ -11,6 +11,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use SimpleStatsIo\LaravelClient\Services\ApiConnector;
+use SimpleStatsIo\LaravelClient\Services\SkipRules;
+use Throwable;
 
 class SendApiRequest implements ShouldQueue
 {
@@ -88,7 +90,15 @@ class SendApiRequest implements ShouldQueue
         return $apiConnector->request($this->route, $this->payload, $this->method);
     }
 
-    protected function succeeded(Response $response): void {}
+    protected function succeeded(Response $response): void
+    {
+        // A skip hint must never fail a request the API already accepted.
+        try {
+            app(SkipRules::class)->remember($response->json('skip'));
+        } catch (Throwable) {
+            return;
+        }
+    }
 
     protected function logFinalFailure($response): void
     {

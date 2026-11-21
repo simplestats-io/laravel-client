@@ -15,6 +15,7 @@ use SimpleStatsIo\LaravelClient\Services\PagePath;
 use SimpleStatsIo\LaravelClient\Services\PageViewQualifier;
 use SimpleStatsIo\LaravelClient\Services\PageViewSettings;
 use SimpleStatsIo\LaravelClient\Services\PageViewState;
+use SimpleStatsIo\LaravelClient\Services\SkipRules;
 use SimpleStatsIo\LaravelClient\Storage\CacheTrackingStorage;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
 use SimpleStatsIo\LaravelClient\Visitor;
@@ -55,6 +56,14 @@ class CheckTracking
             $this->observePageView($request, $response, $visitorHash, $beacon, $requestTime);
 
             return $response;
+        }
+
+        if ($this->isSkippedReferer($request)) {
+            // Marked as handled but without an anchor, so the visitor's next requests
+            // (same hash, no external referer anymore) stay untracked and count no views.
+            $this->trackingStorage->put($visitorHash, collect(['skipped' => true]));
+
+            return $next($request);
         }
 
         $collectedTrackingData = collect(config('simplestats-client.tracking_codes'))->mapWithKeys(
@@ -347,6 +356,15 @@ class CheckTracking
             && ! $this->isPrefetchRequest($request)
             && is_string($request->userAgent())
             && ! $this->isBot($request);
+    }
+
+    /**
+     * Only requests that passed every doTracking() check pay for the cache lookup,
+     * and a request without an external referer skips it entirely.
+     */
+    protected function isSkippedReferer(Request $request): bool
+    {
+        return app(SkipRules::class)->shouldSkip('referer', $this->getReferer($request));
     }
 
     protected function isBot(Request $request): bool
