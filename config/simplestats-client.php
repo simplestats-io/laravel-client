@@ -218,7 +218,8 @@ return [
 
         // Using a supported payment package? Set its provider class and
         // payments are tracked without any code, e.g.
-        // \SimpleStatsIo\LaravelClient\PaymentProviders\CashierPaddle::class
+        // \SimpleStatsIo\LaravelClient\PaymentProviders\CashierPaddle::class or
+        // \SimpleStatsIo\LaravelClient\PaymentProviders\CashierStripe::class
         // Otherwise set your own payment model, which must implement the
         // TrackablePayment or TrackablePaymentWithCondition contract.
         'payment' => [
