@@ -20,6 +20,7 @@ use SimpleStatsIo\LaravelClient\Events\UserTracked;
 use SimpleStatsIo\LaravelClient\Events\VisitorTracked;
 use SimpleStatsIo\LaravelClient\Jobs\SendApiRequest;
 use SimpleStatsIo\LaravelClient\Jobs\SendPageViews;
+use SimpleStatsIo\LaravelClient\PaymentProviders\ProviderPayment;
 use SimpleStatsIo\LaravelClient\Services\CustomPropertiesResolver;
 use SimpleStatsIo\LaravelClient\Services\PageViewSettings;
 use SimpleStatsIo\LaravelClient\Storage\TrackingStorage;
@@ -155,7 +156,7 @@ class SimplestatsClient
     }
 
     /**
-     * @param  TrackablePayment&Model  $payment
+     * @param  (TrackablePayment&Model)|ProviderPayment  $payment
      *
      * @throws Exception
      */

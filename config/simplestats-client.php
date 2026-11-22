@@ -216,9 +216,13 @@ return [
             'model' => User::class,
         ],
 
-        // Make sure this model implements the TrackablePayment or
-        // the TrackablePaymentWithCondition contract
+        // Using a supported payment package? Set its provider class and
+        // payments are tracked without any code, e.g.
+        // \SimpleStatsIo\LaravelClient\PaymentProviders\CashierPaddle::class
+        // Otherwise set your own payment model, which must implement the
+        // TrackablePayment or TrackablePaymentWithCondition contract.
         'payment' => [
+            'provider' => null,
             'model' => null,
         ],
     ],

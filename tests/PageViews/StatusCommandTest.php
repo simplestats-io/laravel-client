@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use SimpleStatsIo\LaravelClient\PaymentProviders\CashierPaddle;
 use SimpleStatsIo\LaravelClient\Services\PageViewBuffer;
 
 beforeEach(function () {
@@ -71,3 +72,22 @@ it('fails without an API token', function () {
 
     Http::assertNothingSent();
 });
+
+it('shows the payment provider', function () {
+    config(['simplestats-client.tracking_types.payment.provider' => CashierPaddle::class]);
+
+    $this->artisan('simplestats:status')
+        ->expectsOutputToContain('provider '.CashierPaddle::class)
+        ->assertSuccessful();
+});
+
+it('fails on a misconfigured payment provider', function (array $payment, string $message) {
+    config(['simplestats-client.tracking_types.payment' => $payment]);
+
+    $this->artisan('simplestats:status')
+        ->expectsOutputToContain($message)
+        ->assertFailed();
+})->with([
+    'no provider class' => [['provider' => 'App\PaymentProviders\Mollie', 'model' => null], 'is no class implementing'],
+    'provider and model' => [['provider' => CashierPaddle::class, 'model' => 'App\Models\Payment'], 'payments may be tracked twice'],
+]);

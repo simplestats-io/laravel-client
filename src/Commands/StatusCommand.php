@@ -7,6 +7,8 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
+use SimpleStatsIo\LaravelClient\PaymentProviders\PaymentProvider;
+use SimpleStatsIo\LaravelClient\PaymentProviders\PaymentProviders;
 use SimpleStatsIo\LaravelClient\Services\ApiConnector;
 use SimpleStatsIo\LaravelClient\Services\PageViewBuffer;
 use SimpleStatsIo\LaravelClient\Services\PageViewSettings;
@@ -50,6 +52,8 @@ class StatusCommand extends Command
             config('simplestats-client.queue') ?: 'default',
         ));
 
+        $this->payments();
+
         $this->pageViews($settings);
 
         if (! $this->option('skip-api') && ! empty(config('simplestats-client.api_token'))) {
@@ -59,6 +63,46 @@ class StatusCommand extends Command
         $this->newLine();
 
         return $this->errors > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    protected function payments(): void
+    {
+        $provider = PaymentProviders::configured();
+        $model = config('simplestats-client.tracking_types.payment.model');
+
+        if ($provider === null && $model) {
+            $this->detail('Payments', "model {$model}", 'info');
+
+            return;
+        }
+
+        if ($provider === null) {
+            $this->detail('Payments', 'not tracked', 'comment');
+
+            return;
+        }
+
+        $paymentProvider = PaymentProviders::make($provider);
+
+        if ($paymentProvider === null) {
+            $this->failure('Payments', "provider {$provider} is no class implementing ".PaymentProvider::class);
+
+            return;
+        }
+
+        if (! $paymentProvider->isAvailable()) {
+            $this->failure('Payments', "provider {$provider} is set, but its package is not installed");
+
+            return;
+        }
+
+        if ($model) {
+            $this->failure('Payments', "provider {$provider} and model {$model} are both set, payments may be tracked twice. Set the model to null");
+
+            return;
+        }
+
+        $this->detail('Payments', "provider {$provider}", 'info');
     }
 
     protected function pageViews(PageViewSettings $settings): void

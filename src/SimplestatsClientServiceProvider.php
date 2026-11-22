@@ -19,6 +19,7 @@ use SimpleStatsIo\LaravelClient\Listeners\UserLoginListener;
 use SimpleStatsIo\LaravelClient\Middleware\CheckTracking;
 use SimpleStatsIo\LaravelClient\Observers\PaymentObserver;
 use SimpleStatsIo\LaravelClient\Observers\UserObserver;
+use SimpleStatsIo\LaravelClient\PaymentProviders\PaymentProviders;
 use SimpleStatsIo\LaravelClient\Services\ApiConnector;
 use SimpleStatsIo\LaravelClient\Services\PageViewBuffer;
 use SimpleStatsIo\LaravelClient\Services\PageViewSettings;
@@ -65,6 +66,7 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
         $this->registerServices();
         $this->registerEvents();
         $this->registerObservers();
+        $this->registerPaymentProvider();
         $this->registerMiddlewares();
         $this->validateConfiguration();
     }
@@ -162,6 +164,15 @@ class SimplestatsClientServiceProvider extends PackageServiceProvider
         $paymentModel = config('simplestats-client.tracking_types.payment.model');
         if ($paymentModel && class_exists($paymentModel)) {
             $paymentModel::observe(PaymentObserver::class);
+        }
+    }
+
+    protected function registerPaymentProvider(): void
+    {
+        $provider = PaymentProviders::make(PaymentProviders::configured());
+
+        if ($provider?->isAvailable()) {
+            $provider->register();
         }
     }
 
