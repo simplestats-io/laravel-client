@@ -26,7 +26,10 @@ class SyncPaddleAdjustment implements ShouldQueue
     {
         $transaction = Cashier::$transactionModel::where('paddle_id', $this->paddleTransactionId)->first();
 
+        // the adjustment webhook can be processed before the transaction webhook stored it
         if (! $transaction) {
+            $this->release(600);
+
             return;
         }
 

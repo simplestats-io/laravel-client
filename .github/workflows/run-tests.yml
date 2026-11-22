@@ -27,9 +27,19 @@ jobs:
         php: [8.3, 8.2]
         laravel: [13.*, 12.*, 11.*]
         stability: [ prefer-lowest, prefer-stable ]
+        payment: [ default ]
         include:
           - laravel: 13.*
             testbench: 11.*
+          # Cashier Mollie cannot be installed next to Cashier Stripe (same namespace), so its
+          # tests run in a job of their own, with Cashier Mollie in place of Cashier Stripe.
+          # The payment value differs from the matrix, which makes this an extra job.
+          - os: ubuntu-latest
+            php: 8.3
+            laravel: 13.*
+            testbench: 11.*
+            stability: prefer-stable
+            payment: cashier-mollie
           - laravel: 12.*
             testbench: 10.*
           - laravel: 11.*
@@ -45,7 +55,7 @@ jobs:
             stability: prefer-lowest
 
 
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}${{ matrix.payment != 'default' && format(' - {0}', matrix.payment) || '' }}
 
     steps:
       - name: Checkout code
@@ -69,6 +79,16 @@ jobs:
         if: matrix.laravel == '11.*'
         run: composer config policy.advisories.block false
 
+      - name: Remove Polar on PHP 8.2
+        if: matrix.php == '8.2'
+        run: composer remove --dev danestves/laravel-polar --no-update --no-interaction
+
+      - name: Replace Cashier Stripe with Cashier Mollie
+        if: matrix.payment == 'cashier-mollie'
+        run: |
+          composer remove --dev laravel/cashier --no-update --no-interaction
+          composer require --dev "mollie/laravel-cashier-mollie:^2.20" --no-update --no-interaction
+
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "nesbot/carbon:>=2.62.1" --no-interaction --no-update
@@ -79,3 +99,7 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/pest --ci
+
+      - name: Run PHPStan on the Cashier Mollie provider
+        if: matrix.payment == 'cashier-mollie'
+        run: vendor/bin/phpstan analyse -c phpstan-mollie.neon.dist --error-format=github

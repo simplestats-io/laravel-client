@@ -59,7 +59,8 @@ class LemonSqueezy implements PaymentProvider
         // WebhookReceived is dispatched outside the package's error handling
         rescue(function () use ($event) {
             $subscription = LemonSqueezyPackage::$subscriptionModel::where(
-                'lemon_squeezy_id', $event->payload['data']['attributes']['subscription_id'] ?? null
+                // the column is a string, PostgreSQL rejects comparing it with the payload's integer
+                'lemon_squeezy_id', (string) ($event->payload['data']['attributes']['subscription_id'] ?? '')
             )->first();
 
             if ($subscription?->billable) {

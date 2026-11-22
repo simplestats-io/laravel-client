@@ -1,0 +1,7 @@
+parameters:
+    level: 4
+    paths:
+        - src/PaymentProviders/CashierMollie.php
+    tmpDir: build/phpstan-mollie
+    checkOctaneCompatibility: true
+    checkModelProperties: true

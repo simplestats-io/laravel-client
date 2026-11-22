@@ -5,6 +5,7 @@ on:
     paths:
       - '**.php'
       - 'phpstan.neon.dist'
+      - 'phpstan-mollie.neon.dist'
       - '.github/workflows/phpstan.yml'
 
 jobs:
@@ -18,7 +19,8 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          # danestves/laravel-polar requires PHP 8.3
+          php-version: '8.3'
           coverage: none
 
       - name: Install composer dependencies

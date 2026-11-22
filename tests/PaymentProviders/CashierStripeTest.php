@@ -14,6 +14,11 @@ use Stripe\StripeClient;
 use Stripe\StripeObject;
 
 beforeEach(function () {
+    // the Cashier Mollie CI job replaces Cashier Stripe, both use the Laravel\Cashier namespace
+    if (! class_exists(WebhookReceived::class)) {
+        $this->markTestSkipped('laravel/cashier is not installed.');
+    }
+
     Schema::create('users', function (Blueprint $table) {
         $table->id();
         $table->string('email')->unique();

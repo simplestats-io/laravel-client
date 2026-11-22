@@ -5,6 +5,10 @@ parameters:
     level: 4
     paths:
         - src
+    # Cashier Mollie shares the Laravel\Cashier namespace with Cashier Stripe and cannot be
+    # installed next to it, phpstan-mollie.neon.dist analyses it in its own CI job.
+    excludePaths:
+        - src/PaymentProviders/CashierMollie.php
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true

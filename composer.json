@@ -31,6 +31,7 @@
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
+        "danestves/laravel-polar": "^3.4",
         "laravel/cashier": "^15.6 || ^16.0",
         "laravel/cashier-paddle": "^2.8",
         "lemonsqueezy/laravel": "^1.8",
@@ -44,9 +45,11 @@
         "spatie/laravel-ray": "^1.26"
     },
     "suggest": {
+        "danestves/laravel-polar": "Track Polar payments without own code (tracking_types.payment.provider = PaymentProviders\\Polar::class)",
         "laravel/cashier": "Track Cashier Stripe payments without own code (tracking_types.payment.provider = PaymentProviders\\CashierStripe::class)",
         "laravel/cashier-paddle": "Track Cashier Paddle payments without own code (tracking_types.payment.provider = PaymentProviders\\CashierPaddle::class)",
-        "lemonsqueezy/laravel": "Track Lemon Squeezy payments without own code (tracking_types.payment.provider = PaymentProviders\\LemonSqueezy::class)"
+        "lemonsqueezy/laravel": "Track Lemon Squeezy payments without own code (tracking_types.payment.provider = PaymentProviders\\LemonSqueezy::class)",
+        "mollie/laravel-cashier-mollie": "Track Cashier Mollie payments without own code (tracking_types.payment.provider = PaymentProviders\\CashierMollie::class)"
     },
     "autoload": {
         "files": [
