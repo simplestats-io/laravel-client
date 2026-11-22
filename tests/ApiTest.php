@@ -318,7 +318,8 @@ it('sends an api request if a new user payment gets created', function () {
     }));
 });
 
-it('does not send an api request for a zero amount payment', function () {
+// The API drops new zero amount payments itself, but needs them to apply a full refund to a tracked payment.
+it('sends an api request for a zero amount payment', function () {
     config(['simplestats-client.tracking_types.payment.model' => UserPayment::class]);
 
     // boot again to update the observers...
@@ -334,8 +335,9 @@ it('does not send an api request for a zero amount payment', function () {
         'gross' => 0,
     ]);
 
-    assertAfterDefer(fn () => Http::assertNotSent(function ($request) {
-        return $request->url() == $this->apiUrl.'stats-payment';
+    assertAfterDefer(fn () => Http::assertSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-payment'
+            && (float) $request['gross'] === 0.0;
     }));
 });
 
