@@ -161,6 +161,11 @@ class SimplestatsClient
      */
     public function trackPayment(TrackablePayment $payment): void
     {
+        // Zero amount transactions are no revenue, e.g. Paddle's payment method changes or Stripe's trial start invoices.
+        if ((float) $payment->getTrackingGross() === 0.0) {
+            return;
+        }
+
         $subscription = $payment->getTrackingSubscription();
 
         $payload = $this->applyPersonAttribution([

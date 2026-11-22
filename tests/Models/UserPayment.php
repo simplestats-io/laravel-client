@@ -28,7 +28,7 @@ class UserPayment extends Model implements TrackablePayment
 
     public function getTrackingGross(): float
     {
-        return 1000;
+        return $this->gross ?? 1000;
     }
 
     public function getTrackingNet(): float

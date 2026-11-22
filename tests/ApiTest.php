@@ -42,6 +42,7 @@ beforeEach(function () {
         $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
         $table->string('visitor_hash', 32)->nullable();
         $table->string('status')->nullable();
+        $table->integer('gross')->nullable();
         $table->timestamps();
     });
 
@@ -314,6 +315,27 @@ it('sends an api request if a new user payment gets created', function () {
             && $request->method() == 'POST'
             && $request['subscription_interval'] === 'month'
             && $request['subscription_plan'] === 'pro';
+    }));
+});
+
+it('does not send an api request for a zero amount payment', function () {
+    config(['simplestats-client.tracking_types.payment.model' => UserPayment::class]);
+
+    // boot again to update the observers...
+    app()->getProvider(SimplestatsClientServiceProvider::class)->boot();
+
+    $user = User::create([
+        'email' => $this->faker->safeEmail(),
+        'password' => bcrypt('password'),
+    ]);
+
+    UserPayment::create([
+        'user_id' => $user->id,
+        'gross' => 0,
+    ]);
+
+    assertAfterDefer(fn () => Http::assertNotSent(function ($request) {
+        return $request->url() == $this->apiUrl.'stats-payment';
     }));
 });
 
