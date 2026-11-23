@@ -2,6 +2,32 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v6.2.0 - 2026-11-23
+
+### Added
+
+- **Payment providers:** track payments without a payment model or contract. Set `tracking_types.payment.provider` to one of the built in providers and payments, refunds and subscriptions are tracked automatically:
+  
+  - `CashierStripe` (laravel/cashier)
+  - `CashierPaddle` (laravel/cashier-paddle)
+  - `LemonSqueezy` (lemonsqueezy/laravel)
+  - `CashierMollie` (mollie/laravel-cashier-mollie)
+  - `Polar` (danestves/laravel-polar)
+  
+  Any class implementing `SimpleStatsIo\LaravelClient\PaymentProviders\PaymentProvider` can be set as provider, so you can write your own. Your own payment model with the `TrackablePayment` contract keeps working as before. `php artisan simplestats:status` now checks the payment setup. Docs: https://simplestats.io/docs/payment-providers.html
+  
+
+### Changed
+
+- Payments with a gross amount of 0 are sent again, so a full refund removes the payment in SimpleStats. Payments that were never tracked with a charge stay ignored. `PaymentTracked` fires for these payments too.
+
+### Upgrade notes
+
+- Self-hosted: update the SimpleStats app to v7.5.2 or later before updating the client. Older versions keep a fully refunded payment instead of removing it. The SaaS is already up to date.
+- Never set `provider` and `model` at the same time, or payments are tracked twice.
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v6.1.1...v6.2.0
+
 ## v6.1.1 - 2026-11-22
 
 ### Fixed
@@ -138,6 +164,7 @@ The new block is off by default. Republish or add it manually to `config/simples
 
 
 
+
 ```
 Existing installs whose published config predates this release are unaffected: without the key, no route is registered and nothing changes.
 
@@ -159,6 +186,7 @@ Add this to your layout, for example `resources/views/layout.antlers.html` in St
 <noscript>
     <img src="/assets/v" alt="" width="1" height="1" style="position:absolute">
 </noscript>
+
 
 
 
@@ -253,6 +281,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
 
 
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -268,6 +297,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 
 
@@ -337,6 +367,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -377,6 +408,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
