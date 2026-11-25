@@ -2,6 +2,14 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v6.2.1 - 2026-11-25
+
+### Fixed
+
+- The client installs on fresh Laravel 13 apps that ship with Guzzle 8. `composer require simplestats-io/laravel-client` no longer needs `-W` to downgrade Guzzle. The client now uses whatever Guzzle version your Laravel version allows (Guzzle 7 or 8).
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v6.2.0...v6.2.1
+
 ## v6.2.0 - 2026-11-23
 
 ### Added
@@ -165,6 +173,7 @@ The new block is off by default. Republish or add it manually to `config/simples
 
 
 
+
 ```
 Existing installs whose published config predates this release are unaffected: without the key, no route is registered and nothing changes.
 
@@ -186,6 +195,7 @@ Add this to your layout, for example `resources/views/layout.antlers.html` in St
 <noscript>
     <img src="/assets/v" alt="" width="1" height="1" style="position:absolute">
 </noscript>
+
 
 
 
@@ -282,6 +292,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
 
 
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -297,6 +308,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 
 
@@ -368,6 +380,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -408,6 +421,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
