@@ -250,24 +250,28 @@ class CheckTracking
             return '';
         }
 
-        return Str::replaceFirst('www.', '', parse_url($value)['host']
+        $host = parse_url($value)['host']
             ?? parse_url('https://'.$value)['host']
-            ?? '');
+            ?? '';
+
+        return Str::replaceStart('www.', '', Str::lower($host));
     }
 
     protected function isOwnDomain(?string $value): bool
     {
         $host = $this->extractHost($value);
-        $appHost = $this->extractHost(config('app.url'));
 
-        if (empty($host) || empty($appHost)) {
+        if ($host === '') {
             return false;
         }
 
-        // Only the exact host counts as "own". A subdomain (asdf.my-app.com) may be a
+        // Only exact hosts count as "own". A subdomain (asdf.my-app.com) may be a
         // separate property (landing page, docs, status) whose traffic to the app is a
-        // legitimate referer, so it must not be dropped. www is already normalised away.
-        return $host === $appHost;
+        // legitimate referer, so it must not be dropped unless it is listed explicitly.
+        return collect([config('app.url'), ...(array) config('simplestats-client.own_domains', [])])
+            ->map(fn ($domain) => $this->extractHost(is_string($domain) ? $domain : null))
+            ->filter()
+            ->contains($host);
     }
 
     /**
@@ -328,11 +332,13 @@ class CheckTracking
         // A missing referer still is a page view, we just cannot tell which page.
         // A foreign one is not: the pixel was embedded in a copy of our html on
         // a site we know nothing about, so that request must not count at all.
+        // A cross-site request without one cannot be verified, and counting it
+        // would let any site with a no-referrer policy embed the pixel freely.
         if (empty($referer)) {
-            return ['path' => null, 'query' => [], 'hotlinked' => false];
+            return ['path' => null, 'query' => [], 'hotlinked' => $request->header('Sec-Fetch-Site') === 'cross-site'];
         }
 
-        if (! $this->isOwnDomain($referer)) {
+        if (! $this->isOwnDomain($referer) || $this->isCookielessCrossSiteSession($request, $referer)) {
             return ['path' => null, 'query' => [], 'hotlinked' => true];
         }
 
@@ -344,6 +350,34 @@ class CheckTracking
     }
 
     /**
+     * A site on another registrable domain never sends the app's session cookie, so in
+     * session mode every ping would start a fresh session and count as a new visitor.
+     * Dropping those undercounts instead, until tracking_storage is switched to cache.
+     */
+    protected function isCookielessCrossSiteSession(Request $request, string $referer): bool
+    {
+        return config('simplestats-client.tracking_storage', 'session') !== 'cache'
+            && $this->isCrossSite($request, $referer)
+            && ! $request->cookies->has((string) config('session.cookie'));
+    }
+
+    /**
+     * Browsers without Sec-Fetch-Site (Safari before 16.4, older Firefox, some webviews)
+     * fall back to comparing hosts. That also treats sibling subdomains as cross-site,
+     * which only costs their very first, still cookieless ping in those browsers.
+     */
+    protected function isCrossSite(Request $request, string $referer): bool
+    {
+        $site = $request->header('Sec-Fetch-Site');
+
+        if ($site !== null) {
+            return $site === 'cross-site';
+        }
+
+        return $this->extractHost($referer) !== $this->extractHost($request->getHost());
+    }
+
+    /**
      * @param  array{path: string|null, query: array<string, mixed>, hotlinked: bool}|null  $beacon
      */
     protected function doTracking(Request $request, ?string $ip, string $visitorHash, ?array $beacon = null): bool
@@ -351,7 +385,7 @@ class CheckTracking
         return ! $this->trackingStorage->has($visitorHash)
             && ! ($beacon['hotlinked'] ?? false)
             && $request->isMethod('get')
-            && ! $this->inExceptArray($request)
+            && ! $this->inExceptArray($request, $this->getPage($request, $beacon))
             && ! $this->isBlockedIp($ip)
             && ! $this->isPrefetchRequest($request)
             && is_string($request->userAgent())
@@ -528,14 +562,22 @@ class CheckTracking
         return ($ipLong & $mask) === $subnetLong;
     }
 
-    protected function inExceptArray(Request $request): bool
+    /**
+     * Beacon and headless requests stand in for the page they forward or are embedded
+     * in, so an excluded page must not be counted through them either.
+     */
+    protected function inExceptArray(Request $request, ?string $page = null): bool
     {
+        $pagePath = $page !== null
+            ? rawurldecode(trim(Str::before(Str::before($page, '#'), '?'), '/') ?: '/')
+            : null;
+
         foreach (config('simplestats-client.except') as $except) {
             if ($except !== '/') {
                 $except = trim($except, '/');
             }
 
-            if ($request->is($except)) {
+            if ($request->is($except) || ($pagePath !== null && Str::is($except, $pagePath))) {
                 return true;
             }
         }

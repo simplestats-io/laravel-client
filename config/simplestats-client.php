@@ -26,6 +26,23 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | SimpleStats Own Domains
+     |--------------------------------------------------------------------------
+     |
+     | Your app's own domain (from app.url) is never recorded as a referer. List
+     | further domains that belong to the same project here, e.g. a marketing
+     | site on Webflow or Next.js ('www.my-app.com'). They are not recorded as
+     | referers either, and beacon requests from their pages are counted, while
+     | beacon requests from any other site are ignored.
+     |
+     */
+
+    'own_domains' => [
+        // 'my-app.com',
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
      | SimpleStats Blocked IPs
      |--------------------------------------------------------------------------
      |
@@ -125,14 +142,16 @@ return [
      | SimpleStats Beacon
      |--------------------------------------------------------------------------
      |
-     | Only needed if your pages are served from a static cache that bypasses
-     | PHP entirely (Statamic "full measure" static caching, nginx/Varnish page
-     | caching, Cloudflare "Cache Everything", ...). In that case the tracking
-     | middleware never runs and those visits are lost.
+     | Only needed for pages that never reach your Laravel app: pages served
+     | from a static cache that bypasses PHP (Statamic "full measure" static
+     | caching, nginx/Varnish, Cloudflare "Cache Everything", ...) or a
+     | marketing site outside Laravel (Next.js, Webflow, Framer, ...).
      |
-     | Enabling this registers a tiny GET endpoint that returns a 1x1 pixel.
-     | Cached pages request it once per page view, which gives the middleware
-     | a real request to track. Add the snippet from the docs to your layout:
+     | Enabling this registers a tiny GET endpoint that returns a 1x1 pixel,
+     | plus a script at the same path with ".js" appended that requests it on
+     | every page view. Add it to your layout or to your marketing site:
+     |
+     | <script src="https://my-app.com/assets/v.js" defer></script>
      |
      | https://simplestats.io/docs/static-caching
      |

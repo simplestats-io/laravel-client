@@ -192,3 +192,171 @@ it('tracks a beacon visitor only once', function () {
     Http::assertSentCount(1);
     assertVisitorTrackedWith('page_entry', '/first');
 });
+
+it('serves a cacheable script that pings the beacon next to its own url', function () {
+    registerBeaconRoute();
+
+    $response = get('/assets/v.js')->assertOk();
+
+    expect($response->headers->get('Content-Type'))->toStartWith('application/javascript')
+        ->and($response->headers->get('Cache-Control'))->toContain('max-age=3600')
+        ->and($response->getContent())->toContain('document.currentScript')
+        ->and($response->getContent())->toContain('"http://localhost/assets/v"');
+});
+
+it('never takes the fallback beacon url from a forged host header', function () {
+    registerBeaconRoute();
+
+    $response = get('/assets/v.js', ['X-Forwarded-Host' => 'evil.test', 'Host' => 'evil.test'])->assertOk();
+
+    expect($response->getContent())->not->toContain('evil.test');
+});
+
+it('does not track a visitor when the script itself is loaded', function () {
+    registerBeaconRoute();
+
+    get('/assets/v.js', beaconHeaders(['referer' => 'http://localhost/pricing']))->assertOk();
+
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
+
+it('tracks a beacon embedded on one of the own domains', function () {
+    config(['simplestats-client.own_domains' => ['WWW.Marketing.test']]);
+
+    registerBeaconRoute();
+
+    // Cross-origin requests only carry the origin as referer, so the script forwards the rest.
+    get('/assets/v?page=/pricing&utm_source=newsletter&document_referer=https://news.test/article', beaconHeaders([
+        'referer' => 'https://www.marketing.test/',
+    ]))->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/pricing');
+    assertVisitorTrackedWith('track_source', 'newsletter');
+    assertVisitorTrackedWith('track_referer', 'news.test');
+});
+
+it('does not treat an unlisted subdomain of an own domain as own', function () {
+    config(['simplestats-client.own_domains' => ['marketing.test']]);
+
+    registerBeaconRoute();
+
+    get('/assets/v?page=/pricing', beaconHeaders([
+        'referer' => 'https://evil.marketing.test/',
+    ]))->assertOk();
+
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
+
+it('does not mistake a host with www. in the middle for an own domain', function () {
+    config(['simplestats-client.own_domains' => ['my-app.test']]);
+
+    registerBeaconRoute();
+
+    get('/assets/v?page=/pricing', beaconHeaders(['referer' => 'https://my-www.app.test/']))->assertOk();
+
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
+
+it('drops cross-site beacons without a referer', function () {
+    registerBeaconRoute();
+
+    get('/assets/v?page=/pricing', beaconHeaders(['sec_fetch_site' => 'cross-site']))->assertOk();
+
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
+
+it('counts same-site beacons without a referer', function () {
+    registerBeaconRoute();
+
+    get('/assets/v?page=/pricing', beaconHeaders(['sec_fetch_site' => 'same-site']))->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/pricing');
+});
+
+it('does not track a beacon for a page on the except list', function () {
+    config(['simplestats-client.own_domains' => ['marketing.test']]);
+
+    registerBeaconRoute();
+
+    get('/assets/v?page=/admin/settings', beaconHeaders(['referer' => 'https://marketing.test/']))->assertOk();
+
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
+
+it('does not track a no-js beacon embedded in a page on the except list', function () {
+    registerBeaconRoute();
+
+    get('/assets/v', beaconHeaders(['referer' => 'http://localhost/admin/reports']))->assertOk();
+
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
+
+it('drops cookieless cross-site beacons in session mode on browsers without fetch metadata', function () {
+    config([
+        'simplestats-client.tracking_storage' => 'session',
+        'simplestats-client.own_domains' => ['marketing.test'],
+    ]);
+
+    registerBeaconRoute();
+
+    get('/assets/v?page=/pricing', beaconHeaders(['referer' => 'https://marketing.test/']))->assertOk();
+
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
+
+it('does not record an own domain as referer', function () {
+    config(['simplestats-client.own_domains' => ['marketing.test']]);
+
+    registerBeaconRoute();
+
+    get('/assets/v?document_referer=https://www.marketing.test/pricing', beaconHeaders([
+        'referer' => 'https://marketing.test/',
+    ]))->assertOk();
+
+    assertVisitorTrackedWith('track_referer', null);
+});
+
+it('drops cookieless cross-site beacons in session mode instead of counting each as a new visitor', function () {
+    config([
+        'simplestats-client.tracking_storage' => 'session',
+        'simplestats-client.own_domains' => ['marketing.test'],
+    ]);
+
+    registerBeaconRoute();
+
+    get('/assets/v?page=/pricing', beaconHeaders([
+        'referer' => 'https://marketing.test/',
+        'sec_fetch_site' => 'cross-site',
+    ]))->assertOk();
+
+    flushDeferred();
+
+    Http::assertNothingSent();
+});
+
+it('tracks cross-site beacons when the visitor is kept in the cache', function () {
+    config(['simplestats-client.own_domains' => ['marketing.test']]);
+
+    registerBeaconRoute();
+
+    get('/assets/v?page=/pricing', beaconHeaders([
+        'referer' => 'https://marketing.test/',
+        'sec_fetch_site' => 'cross-site',
+    ]))->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/pricing');
+});
