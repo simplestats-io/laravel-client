@@ -388,8 +388,25 @@ class CheckTracking
             && ! $this->inExceptArray($request, $this->getPage($request, $beacon))
             && ! $this->isBlockedIp($ip)
             && ! $this->isPrefetchRequest($request)
+            && ! $this->isUnforwardedBackgroundRequest($request, $beacon)
             && is_string($request->userAgent())
             && ! $this->isBot($request);
+    }
+
+    /**
+     * A single page app often calls the API (e.g. "who is logged in?") before the beacon
+     * script's first ping arrives. That call would start the visit with the API route as
+     * entry page and without the campaign parameters, and the ping would come too late.
+     * With the beacon enabled, a browser fetch or XHR therefore only starts a visit when it
+     * forwards the page itself. Mobile apps and old browsers send no fetch metadata and
+     * keep starting visits as before.
+     */
+    protected function isUnforwardedBackgroundRequest(Request $request, ?array $beacon): bool
+    {
+        return $beacon === null
+            && config('simplestats-client.beacon.enabled')
+            && $request->header('Sec-Fetch-Dest') === 'empty'
+            && $this->getForwardedPage($request) === null;
     }
 
     /**

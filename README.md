@@ -178,8 +178,9 @@ return [
      |
      | Only needed for pages that never reach your Laravel app: pages served
      | from a static cache that bypasses PHP (Statamic "full measure" static
-     | caching, nginx/Varnish, Cloudflare "Cache Everything", ...) or a
-     | marketing site outside Laravel (Next.js, Webflow, Framer, ...).
+     | caching, nginx/Varnish, Cloudflare "Cache Everything", ...), a
+     | marketing site outside Laravel (Next.js, Webflow, Framer, ...) or a
+     | single page app on another domain that talks to your API.
      |
      | Enabling this registers a tiny GET endpoint that returns a 1x1 pixel,
      | plus a script at the same path with ".js" appended that requests it on

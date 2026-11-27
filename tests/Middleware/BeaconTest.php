@@ -360,3 +360,56 @@ it('tracks cross-site beacons when the visitor is kept in the cache', function (
 
     assertVisitorTrackedWith('page_entry', '/pricing');
 });
+
+it('lets the beacon start the visit when an api call of the page arrives first', function () {
+    config(['simplestats-client.own_domains' => ['spa.test']]);
+
+    registerBeaconRoute();
+    Route::get('/api/me', fn () => ['user' => null])->middleware('web');
+
+    get('/api/me', beaconHeaders(['sec_fetch_mode' => 'cors', 'sec_fetch_dest' => 'empty']))->assertOk();
+    get('/assets/v?page=/landing&utm_source=newsletter', beaconHeaders([
+        'referer' => 'https://spa.test/',
+        'sec_fetch_dest' => 'empty',
+    ]))->assertOk();
+
+    flushDeferred();
+
+    Http::assertSentCount(1);
+    assertVisitorTrackedWith('page_entry', '/landing');
+    assertVisitorTrackedWith('track_source', 'newsletter');
+});
+
+it('starts the visit from a background request that forwards the page', function () {
+    registerBeaconRoute();
+    Route::get('/api/me', fn () => ['user' => null])->middleware('web');
+
+    get('/api/me?utm_source=newsletter', beaconHeaders([
+        'sec_fetch_mode' => 'cors',
+        'sec_fetch_dest' => 'empty',
+        'X-Page' => '/landing',
+    ]))->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/landing');
+});
+
+it('starts the visit from a background request when the beacon is disabled', function () {
+    config(['simplestats-client.beacon.enabled' => false]);
+
+    Route::get('/api/me', fn () => ['user' => null])->middleware('web');
+
+    get('/api/me', beaconHeaders(['sec_fetch_mode' => 'cors', 'sec_fetch_dest' => 'empty']))->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/api/me');
+});
+
+it('starts the visit from requests without fetch metadata when the beacon is enabled', function ($headers) {
+    Route::get('/test', fn () => true)->middleware('web');
+
+    get('/test', $headers)->assertOk();
+
+    assertVisitorTrackedWith('page_entry', '/test');
+})->with([
+    'page load' => [beaconHeaders(['sec_fetch_mode' => 'navigate', 'sec_fetch_dest' => 'document'])],
+    'mobile app' => [['user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1']],
+]);
