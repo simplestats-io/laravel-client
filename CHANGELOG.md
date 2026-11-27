@@ -2,6 +2,14 @@
 
 All notable changes to `simplestats-client` will be documented in this file.
 
+## v6.4.0 - 2026-11-27
+
+### Added
+
+- **Single page apps on another domain:** the beacon script now works for a SPA (Next.js, Nuxt, React, Vue) that talks to your Laravel API. With the beacon enabled, an API call from the browser (fetch or XHR) only starts a visit when it forwards the page itself, so the script's ping always sets the entry page and the campaign parameters, whichever request arrives first. Mobile apps and browsers without fetch metadata keep starting visits as before.
+
+**Full Changelog**: https://github.com/simplestats-io/laravel-client/compare/v6.3.0...v6.4.0
+
 ## v6.3.0 - 2026-11-26
 
 ### Added
@@ -196,6 +204,7 @@ The new block is off by default. Republish or add it manually to `config/simples
 
 
 
+
 ```
 Existing installs whose published config predates this release are unaffected: without the key, no route is registered and nothing changes.
 
@@ -217,6 +226,7 @@ Add this to your layout, for example `resources/views/layout.antlers.html` in St
 <noscript>
     <img src="/assets/v" alt="" width="1" height="1" style="position:absolute">
 </noscript>
+
 
 
 
@@ -317,6 +327,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
 
 
 
+
 ```
 For subscription payments, return a `TrackingSubscription` with the plan and interval so we can attribute and segment recurring revenue:
 
@@ -332,6 +343,7 @@ public function getTrackingSubscription(): ?TrackingSubscription
         default => null,
     };
 }
+
 
 
 
@@ -407,6 +419,7 @@ To get started, set in `config/simplestats-client.php`:
 
 
 
+
 ```
 See the [custom properties docs](https://simplestats.io/docs/how-to-track-custom-properties.html) for the full walkthrough.
 
@@ -447,6 +460,7 @@ For headless / SPA / stateless setups, set in `config/simplestats-client.php`:
 ```php
 'middleware_groups' => ['api'],
 'tracking_storage' => 'cache',
+
 
 
 
